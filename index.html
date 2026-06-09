@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>shabadwashere — debug</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body {
+    height: 100%;
+    background: #040308;
+    overflow: hidden;
+    font-family: 'Courier New', monospace;
+    color: #6a5a50;
+  }
+
+  .room-wrap {
+    width: 100vw; height: 100vh;
+    overflow-x: auto; overflow-y: hidden;
+    background: #040308; position: relative;
+    -webkit-overflow-scrolling: touch;
+  }
+  .room-wrap::-webkit-scrollbar { height: 6px; background: #0a0810; }
+  .room-wrap::-webkit-scrollbar-thumb { background: #3a2820; border-radius: 3px; }
+
+  .room-inner { position: relative; height: 100vh; display: inline-block; }
+  .room-img {
+    height: 100vh; width: auto; display: block;
+    image-rendering: pixelated; image-rendering: crisp-edges;
+    user-select: none; -webkit-user-drag: none;
+  }
+
+  /* === DEBUG: hotspot is VISIBLE so we can see where it is === */
+  .hotspot {
+    position: absolute;
+    cursor: pointer;
+    z-index: 4;
+    background: rgba(255, 60, 60, 0.35);     /* red so we can see */
+    border: 2px solid rgba(255, 100, 100, 0.9);
+    box-shadow: 0 0 0 2px rgba(0,0,0,0.4) inset;
+  }
+  .hotspot-book {
+    left: 33.5%; top: 51%;
+    width: 7.5%; height: 13%;
+  }
+
+  /* === DEBUG status panel in the top-left, always visible === */
+  .debug-status {
+    position: fixed; top: 10px; left: 10px;
+    z-index: 999;
+    background: rgba(0,0,0,0.85);
+    color: #ff6;
+    padding: 8px 12px;
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    line-height: 1.6;
+    border: 1px solid #5a3a28;
+    max-width: 260px;
+  }
+  .debug-status b { color: #fff; }
+  .debug-status .ok { color: #6f6; }
+  .debug-status .bad { color: #f66; }
+
+  /* Examine view as before but simplified for debug */
+  .examine-root {
+    position: fixed; inset: 0; z-index: 50;
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.45s ease;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .examine-root.show { opacity: 1; }
+  body.is-touch .examine-root.show { pointer-events: auto; }
+
+  .examine-overlay {
+    position: absolute; inset: 0;
+    background: rgba(4,3,8,0.85);
+  }
+  .examine-frame {
+    position: relative;
+    width: min(72vw, 620px);
+    height: min(46vh, 400px);
+    border: 10px solid #2a1810;
+    box-shadow: 0 0 0 2px #4a2c1a, 0 20px 60px rgba(0,0,0,0.7);
+    transform: scale(0.94);
+    transition: transform 0.45s ease;
+    background: #1a100c;
+    overflow: hidden;
+  }
+  .examine-root.show .examine-frame { transform: scale(1); }
+  .examine-img {
+    width: 100%; height: 100%;
+    background-image: url('room_centerpiece.jpg');
+    background-repeat: no-repeat;
+    background-size: 460%;
+    background-position: 36% 56%;
+    image-rendering: pixelated; image-rendering: crisp-edges;
+  }
+</style>
+</head>
+<body>
+
+<div class="room-wrap" id="room">
+  <div class="room-inner">
+    <img class="room-img" id="roomImg" src="room_centerpiece.jpg" alt="">
+    <div class="hotspot hotspot-book" id="bookHotspot"></div>
+  </div>
+</div>
+
+<!-- DEBUG status — tells us what's working -->
+<div class="debug-status" id="debug">
+  <b>DEBUG MODE</b><br>
+  image loaded: <span id="dImg" class="bad">no</span><br>
+  hotspot detected: <span id="dHover" class="bad">no</span><br>
+  examine triggered: <span id="dShow" class="bad">no</span><br>
+  device: <span id="dDevice">?</span>
+</div>
+
+<div class="examine-root" id="examineRoot">
+  <div class="examine-overlay"></div>
+  <div class="examine-frame"><div class="examine-img"></div></div>
+</div>
+
+<script>
+(function() {
+  const room    = document.getElementById('room');
+  const img     = document.getElementById('roomImg');
+  const hotspot = document.getElementById('bookHotspot');
+  const examine = document.getElementById('examineRoot');
+
+  // debug indicators
+  const dImg    = document.getElementById('dImg');
+  const dHover  = document.getElementById('dHover');
+  const dShow   = document.getElementById('dShow');
+  const dDevice = document.getElementById('dDevice');
+
+  function centerView() {
+    const scrollable = room.scrollWidth - room.clientWidth;
+    if (scrollable > 0) room.scrollLeft = scrollable / 2;
+  }
+
+  function markImgLoaded() {
+    dImg.textContent = 'yes (' + img.naturalWidth + 'x' + img.naturalHeight + ')';
+    dImg.className = 'ok';
+    centerView();
+  }
+  if (img.complete && img.naturalWidth > 0) markImgLoaded();
+  else {
+    img.addEventListener('load', markImgLoaded);
+    img.addEventListener('error', function() {
+      dImg.textContent = 'FAILED TO LOAD';
+      dImg.className = 'bad';
+    });
+  }
+  window.addEventListener('resize', centerView);
+
+  const isTouch = window.matchMedia('(hover: none)').matches;
+  dDevice.textContent = isTouch ? 'touch' : 'hover (mouse)';
+  if (isTouch) document.body.classList.add('is-touch');
+
+  function showExamine() {
+    examine.classList.add('show');
+    dShow.textContent = 'YES';
+    dShow.className = 'ok';
+  }
+  function hideExamine() { examine.classList.remove('show'); }
+
+  hotspot.addEventListener('mouseenter', function() {
+    dHover.textContent = 'YES (mouseenter)';
+    dHover.className = 'ok';
+    if (!isTouch) showExamine();
+  });
+  hotspot.addEventListener('mouseleave', function() {
+    if (!isTouch) hideExamine();
+  });
+  hotspot.addEventListener('click', function(e) {
+    e.stopPropagation();
+    dHover.textContent = 'YES (click)';
+    dHover.className = 'ok';
+    examine.classList.toggle('show');
+    if (examine.classList.contains('show')) {
+      dShow.textContent = 'YES';
+      dShow.className = 'ok';
+    }
+  });
+  examine.addEventListener('click', hideExamine);
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') hideExamine();
+  });
+})();
+</script>
+
+</body>
+</html>
