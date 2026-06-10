@@ -102,6 +102,31 @@
   }
 
   /* Oil lamp: tight shimmer + breathing desk pool */
+  /* ---- THE ROCKING CHAIR ----
+     Done properly this time: a true sprite of the man + chair
+     (hand-traced silhouette) rotating over an under-patch that
+     shows the room behind him (from the AI-emptied room image).
+     The wall can't swing — it isn't part of the sprite. His edges
+     can't freeze — the whole silhouette IS the sprite. The planted
+     shoe is excluded; the foot-tap system on top keeps owning it. */
+  .man-under, .man-sprite {
+    left: 48.106%; top: 36.905%;
+    width: 21.622%; height: 53.943%;
+    background-repeat: no-repeat;
+    background-size: 100% 100%;
+    image-rendering: pixelated; image-rendering: crisp-edges;
+  }
+  .man-under  { background-image: url('man_under.png'); }
+  .man-sprite {
+    background-image: url('man_sprite.png');
+    transform-origin: 40.3% 98.8%;      /* the rocker contact point */
+    animation: manRock 2.6s ease-in-out infinite alternate;
+  }
+  @keyframes manRock {
+    from { transform: rotate(0.45deg); }
+    to   { transform: rotate(-0.45deg); }
+  }
+
   .lamp-glow {
     left: 10.5%; top: 40%; width: 5.5%; height: 14%;
     background: radial-gradient(ellipse at center,
@@ -493,12 +518,14 @@
     <!-- living effects -->
     <div class="fx fire-glow"></div>
     <div class="fx fire-glow2"></div>
-    <div class="fx room-glow"></div>
     <div class="fx lamp-glow"></div>
     <div class="fx lamp-pool"></div>
     <div class="fx globe-spin"></div>
     <div class="fx window-clean"></div>
     <div class="fx lightning" id="lightning"></div>
+    <div class="fx man-under"></div>
+    <div class="fx man-sprite"></div>
+    <div class="fx room-glow"></div>
     <div class="fx foot-floor"></div>
     <div class="fx foot-sprite"></div>
     <div class="fx steam-patch"></div>
