@@ -3,10 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <title>shabadwashere</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
   /* ==========================================================
-     PAGE BASICS — dark void outside the room
+     PAGE BASICS — the dark void around the room
      ========================================================== */
   * { margin: 0; padding: 0; box-sizing: border-box; }
   html, body {
@@ -18,49 +18,46 @@
   }
 
   /* ==========================================================
-     THE ROOM — one image, drag/scroll sideways
+     THE ROOM — the whole image fits on screen. No scrolling.
+     #stage is sized by JavaScript to the image's rendered size
+     (it shrinks to fit the viewport while keeping aspect ratio),
+     so every overlay positioned in % stays glued to the image.
      ========================================================== */
-  .room-wrap {
-    width: 100vw; height: 100vh;
-    overflow-x: auto; overflow-y: hidden;
-    background: #040308; position: relative;
-    -webkit-overflow-scrolling: touch;
+  .viewport {
+    position: fixed; inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;            /* the room fills the screen; edges crop */
   }
-  .room-wrap::-webkit-scrollbar { height: 6px; background: #0a0810; }
-  .room-wrap::-webkit-scrollbar-thumb { background: #3a2820; border-radius: 3px; }
-
-  .room-inner { position: relative; height: 100vh; display: inline-block; }
-
+  #stage {
+    position: relative;
+    /* width/height set by JS */
+  }
   .room-img {
-    height: 100vh; width: auto; display: block;
+    width: 100%; height: 100%;
+    display: block;
     image-rendering: pixelated; image-rendering: crisp-edges;
-    -ms-interpolation-mode: nearest-neighbor;
     user-select: none; -webkit-user-drag: none;
   }
 
   /* ==========================================================
-     LIVING ROOM EFFECTS — pan with the image, never clickable
+     LIVING ROOM EFFECTS — positioned in % of the stage
      ========================================================== */
   .fx { position: absolute; pointer-events: none; }
 
-  /* ---- FIRE GLOW (as before — no geometry wiggle) ---- */
+  /* Fire glows: layered flicker at different rhythms */
   .fire-glow {
-    left: 63%; top: 46%;
-    width: 18%; height: 38%;
+    left: 63%; top: 46%; width: 18%; height: 38%;
     background: radial-gradient(ellipse at center,
-      rgba(255,150,50,0.30) 0%,
-      rgba(255,110,30,0.15) 45%,
-      transparent 72%);
+      rgba(255,150,50,0.30) 0%, rgba(255,110,30,0.15) 45%, transparent 72%);
     mix-blend-mode: screen;
     animation: flickA 2.1s ease-in-out infinite;
   }
   .fire-glow2 {
-    left: 64.5%; top: 49%;
-    width: 15%; height: 32%;
+    left: 64.5%; top: 49%; width: 15%; height: 32%;
     background: radial-gradient(ellipse at center,
-      rgba(255,190,80,0.26) 0%,
-      rgba(255,140,40,0.10) 50%,
-      transparent 75%);
+      rgba(255,190,80,0.26) 0%, rgba(255,140,40,0.10) 50%, transparent 75%);
     mix-blend-mode: screen;
     animation: flickB 1.3s ease-in-out infinite;
   }
@@ -78,25 +75,21 @@
 
   /* Firelight breathing across the man and the floor */
   .room-glow {
-    left: 40%; top: 30%;
-    width: 42%; height: 65%;
+    left: 40%; top: 30%; width: 42%; height: 65%;
     background: radial-gradient(ellipse at 70% 60%,
-      rgba(255,140,50,0.09) 0%,
-      transparent 70%);
+      rgba(255,140,50,0.09) 0%, transparent 70%);
     mix-blend-mode: screen;
     animation: breatheGlow 3.4s ease-in-out infinite;
   }
   @keyframes breatheGlow {
-    0%, 100% { opacity: 0.75; }
-    50%      { opacity: 1.0; }
+    0%, 100% { opacity: 0.75; } 50% { opacity: 1.0; }
   }
 
-  /* ---- EMBERS ---- */
+  /* Embers — created by JS */
   .ember {
     position: absolute;
     width: 3px; height: 3px;
-    background: #ffb050;
-    border-radius: 50%;
+    background: #ffb050; border-radius: 50%;
     opacity: 0;
     box-shadow: 0 0 4px rgba(255,150,60,0.8);
     animation: emberRise linear infinite;
@@ -108,64 +101,18 @@
     100% { opacity: 0;   transform: translateY(-90px) translateX(8px); }
   }
 
-  /* ---- LIGHTNING ----
-     A single smooth brightening of the window glass — the painted
-     bolts in the image light up as if a new strike just happened.
-     One swell up, one swell down, ~1.2s total. No flicker, ever. */
-  .lightning {
-    left: 26.5%; top: 14.5%;
-    width: 12.8%; height: 48.5%;
-    background: radial-gradient(ellipse at 50% 35%,
-      rgba(215,228,255,0) 0%,
-      rgba(215,228,255,0) 100%);
-    mix-blend-mode: screen;
-    opacity: 0;
-  }
-  .lightning.strike {
-    animation: lightningSwell 1.25s ease-in-out;
-  }
-  @keyframes lightningSwell {
-    0%   { opacity: 0;    background: radial-gradient(ellipse at 50% 35%, rgba(215,228,255,0.45) 0%, rgba(190,205,245,0.18) 60%, transparent 100%); }
-    35%  { opacity: 1; }
-    100% { opacity: 0;    background: radial-gradient(ellipse at 50% 35%, rgba(215,228,255,0.45) 0%, rgba(190,205,245,0.18) 60%, transparent 100%); }
-  }
-
-  /* Faint thunder wash over the whole room, in sync with the strike */
-  .room-flash {
-    position: fixed; inset: 0;
-    background: rgba(190,205,240,0);
-    pointer-events: none; z-index: 7;
-  }
-  .room-flash.swell {
-    animation: thunderSwell 1.6s ease-in-out;
-  }
-  @keyframes thunderSwell {
-    0%   { background: rgba(190,205,240,0); }
-    35%  { background: rgba(190,205,240,0.045); }
-    100% { background: rgba(190,205,240,0); }
-  }
-
-  /* ---- OIL LAMP ----
-     The lamp on the desk gets its own living light: a small warm
-     glow around the chimney that shimmers faster and tighter than
-     the fireplace (small flames jitter, big fires roll), plus a
-     faint pool of light breathing on the desk surface below it. */
+  /* Oil lamp: tight shimmer + breathing desk pool */
   .lamp-glow {
-    left: 10.5%; top: 40%;
-    width: 5.5%; height: 14%;
+    left: 10.5%; top: 40%; width: 5.5%; height: 14%;
     background: radial-gradient(ellipse at center,
-      rgba(255,200,110,0.32) 0%,
-      rgba(255,160,60,0.14) 50%,
-      transparent 75%);
+      rgba(255,200,110,0.32) 0%, rgba(255,160,60,0.14) 50%, transparent 75%);
     mix-blend-mode: screen;
     animation: lampShimmer 0.7s ease-in-out infinite;
   }
   .lamp-pool {
-    left: 8%; top: 51%;
-    width: 10%; height: 11%;
+    left: 8%; top: 51%; width: 10%; height: 11%;
     background: radial-gradient(ellipse at center,
-      rgba(255,180,90,0.10) 0%,
-      transparent 70%);
+      rgba(255,180,90,0.10) 0%, transparent 70%);
     mix-blend-mode: screen;
     animation: lampPool 2.8s ease-in-out infinite;
   }
@@ -176,24 +123,12 @@
     80%      { opacity: 0.92; transform: scale(1.015); }
   }
   @keyframes lampPool {
-    0%, 100% { opacity: 0.7; }
-    50%      { opacity: 1.0; }
+    0%, 100% { opacity: 0.7; } 50% { opacity: 1.0; }
   }
 
-  /* ---- GLOBE ----
-     The globe turns continuously in one direction, like a real
-     globe given a lazy spin. Trick: a copy of the globe's face
-     inside a soft circular mask; its texture slides steadily one
-     way. Since one image can't wrap around a sphere forever, at
-     the end of each cycle the overlay fades out for a blink while
-     it snaps back to the start — the still globe underneath covers
-     the reset, so the eye just reads slow, endless turning.
-       bg-width  = 100 / 3.6  * 100 = 2777.8%
-       bg-pos-x  = 17.2 / 96.4 * 100 = 17.84%
-       bg-pos-y  = 46.6 / 91   * 100 = 51.2%  */
+  /* Globe: continuous slow turn (reset hidden behind a blink) */
   .globe-spin {
-    left: 17.2%; top: 46.6%;
-    width: 3.6%; height: 9%;
+    left: 17.2%; top: 46.6%; width: 3.6%; height: 9%;
     background-image: url('room_centerpiece.jpg');
     background-repeat: no-repeat;
     background-size: 2777.8% auto;
@@ -211,18 +146,44 @@
     100% { background-position: 17.55% 51.2%; opacity: 1; }
   }
 
-  /* ---- FOOT TAP ----
-     The real sprite approach, in miniature. Two layers sit exactly
-     where his planted shoe is painted:
-       1. shoe_floor.png — the same spot with the shoe digitally
-          removed and floor reconstructed behind it (always visible,
-          hidden beneath the sprite at rest)
-       2. shoe_sprite.png — a cutout of just the shoe, with
-          transparency around it
-     Every few seconds the sprite pivots at the heel: the toe lifts,
-     taps down, gives a smaller second bounce, and rests. Because
-     the floor patch sits beneath, nothing ghosts — the floor is
-     simply *there* when the toe rises off it. */
+  /* The original image's painted static rain is erased by this
+     clean-glass patch (lightning bolt preserved). The animated
+     rain falls over it. */
+  .window-clean {
+    left: 27.53%; top: 18.75%;
+    width: 10.259%; height: 43.527%;
+    background-image: url('window_clean.png');
+    background-repeat: no-repeat;
+    background-size: 100% 100%;
+    image-rendering: pixelated; image-rendering: crisp-edges;
+  }
+
+  /* Lightning over the window: one smooth swell, no strobe */
+  .lightning {
+    left: 27.53%; top: 18.75%; width: 10.259%; height: 43.527%;
+    mix-blend-mode: screen;
+    opacity: 0;
+  }
+  .lightning.strike { animation: lightningSwell 1.25s ease-in-out; }
+  @keyframes lightningSwell {
+    0%   { opacity: 0; background: radial-gradient(ellipse at 50% 35%, rgba(215,228,255,0.45) 0%, rgba(190,205,245,0.18) 60%, transparent 100%); }
+    35%  { opacity: 1; }
+    100% { opacity: 0; background: radial-gradient(ellipse at 50% 35%, rgba(215,228,255,0.45) 0%, rgba(190,205,245,0.18) 60%, transparent 100%); }
+  }
+  .room-flash {
+    position: fixed; inset: 0;
+    background: rgba(190,205,240,0);
+    pointer-events: none; z-index: 7;
+  }
+  .room-flash.swell { animation: thunderSwell 1.6s ease-in-out; }
+  @keyframes thunderSwell {
+    0%   { background: rgba(190,205,240,0); }
+    35%  { background: rgba(190,205,240,0.045); }
+    100% { background: rgba(190,205,240,0); }
+  }
+
+  /* Foot tap: floor patch beneath + shoe sprite pivoting at the heel.
+     Two speeds: a lazy idle tap, and a beat-locked tap when music plays. */
   .foot-floor, .foot-sprite {
     left: 62.34%; top: 82.44%;
     width: 4.735%; height: 7.961%;
@@ -233,10 +194,13 @@
   .foot-floor  { background-image: url('shoe_floor.png'); }
   .foot-sprite {
     background-image: url('shoe_sprite.png');
-    transform-origin: 10.7% 84.1%;        /* the heel */
-    animation: footTap 3.6s ease-in-out infinite;
+    transform-origin: 10.7% 84.1%;
+    animation: footTapIdle 3.6s ease-in-out infinite;
   }
-  @keyframes footTap {
+  body.music-on .foot-sprite {
+    animation: footTapBeat var(--beat, 1.33s) linear infinite;
+  }
+  @keyframes footTapIdle {
     0%, 84%  { transform: rotate(0deg); }
     87.5%    { transform: rotate(-4.5deg); }
     91%      { transform: rotate(0deg); }
@@ -244,9 +208,82 @@
     96%      { transform: rotate(0deg); }
     100%     { transform: rotate(0deg); }
   }
+  @keyframes footTapBeat {
+    0%, 55%  { transform: rotate(0deg); }
+    75%      { transform: rotate(-4.5deg); }
+    95%      { transform: rotate(0deg); }
+    100%     { transform: rotate(0deg); }
+  }
+
+  /* ---- TEA STEAM ----
+     The painted static steam from the original image is erased by
+     a small wall-colored patch; three soft animated wisps rise in
+     its place. Each climbs, sways, grows and fades on its own
+     timing so the steam never repeats visibly. */
+  .steam-patch {
+    left: 47.47%; top: 54.46%;
+    width: 4.009%; height: 9.003%;
+    background-image: url('steam_patch.png');
+    background-repeat: no-repeat;
+    background-size: 100% 100%;
+    image-rendering: pixelated; image-rendering: crisp-edges;
+  }
+  .steam {
+    position: absolute;
+    left: 49.5%; top: 60.8%;
+    width: 7px; height: 12px;
+    border-radius: 50%;
+    background: rgba(225,215,205,0.45);
+    filter: blur(3px);
+    opacity: 0;
+    pointer-events: none;
+    animation: steamRise ease-out infinite;
+  }
+  .steam.s1 { animation-duration: 3.2s; animation-delay: 0s;    margin-left: -3px; }
+  .steam.s2 { animation-duration: 4.1s; animation-delay: 1.3s;  margin-left: 2px; }
+  .steam.s3 { animation-duration: 3.6s; animation-delay: 2.4s;  margin-left: 0px; }
+  @keyframes steamRise {
+    0%   { transform: translate(0, 0) scale(0.6);       opacity: 0; }
+    18%  { opacity: 0.45; }
+    50%  { transform: translate(3px, -16px) scale(1.0); opacity: 0.3; }
+    100% { transform: translate(-3px, -34px) scale(1.6); opacity: 0; }
+  }
+
+  /* ---- RAIN OUTSIDE THE WINDOW ----
+     Fast, thin streaks falling in the world beyond the glass.
+     Each streak lives inside a single pane (set by JS) — it spawns
+     at the pane's top and dies at its bottom, so the rain reads as
+     BEHIND the wooden frame bars, the way real rain does through a
+     window. Speeds, positions and phases are randomized so the
+     storm never visibly repeats. */
+  .drop-box {
+    left: 27.53%; top: 18.75%;
+    width: 10.259%; height: 43.527%;
+    overflow: hidden;
+  }
+  .droplet {
+    position: absolute;
+    width: 1.5px; height: 13px;
+    background: linear-gradient(to bottom,
+      rgba(205,222,248,0) 0%,
+      rgba(205,222,248,0.42) 100%);
+    opacity: 0;
+    animation-name: rainFallPane;
+    animation-timing-function: linear;
+    animation-iteration-count: infinite;
+  }
+  /* Wind: rain falls at a 20° slant — drifting rightward as it
+     drops, each streak tilted to exactly match its travel vector
+     (atan(3.9/10.6) ≈ 20°). */
+  @keyframes rainFallPane {
+    0%   { transform: translate(0, -14px) rotate(-20deg);      opacity: 0; }
+    6%   { opacity: 0.5; }
+    92%  { opacity: 0.5; }
+    100% { transform: translate(3.9vh, 10.6vh) rotate(-20deg); opacity: 0; }
+  }
 
   /* ==========================================================
-     HOTSPOTS — invisible. The room rewards looking.
+     THE CORKBOARD HOTSPOT — the one interactive object for now
      ========================================================== */
   .hotspot {
     position: absolute;
@@ -255,28 +292,29 @@
     z-index: 4;
   }
 
-  /* Edge vignettes */
-  .edge {
-    position: fixed; top: 0; width: 120px; height: 100vh;
-    pointer-events: none; z-index: 8;
+  /* ==========================================================
+     BOTTOM NAV — small, dim, always findable
+     ========================================================== */
+  .nav {
+    position: fixed;
+    bottom: 14px; right: 16px;
+    z-index: 20;
+    display: flex; gap: 10px;
   }
-  .edge-left  { left: 0;  background: linear-gradient(to right, #040308 5%, transparent 100%); }
-  .edge-right { right: 0; background: linear-gradient(to left,  #040308 5%, transparent 100%); }
-
-  /* Hint */
-  .hint {
-    position: fixed; bottom: 18px; left: 0; right: 0;
-    text-align: center; color: #6a5a50;
-    font-size: 11px; letter-spacing: 4px;
-    pointer-events: none; z-index: 9;
-    text-shadow: 0 0 6px #000, 0 0 10px #000;
-    transition: opacity 2.5s ease-out;
+  .nav button {
+    font-family: 'Courier New', monospace;
+    font-size: 11px; letter-spacing: 3px;
+    color: #b9a890;
+    background: rgba(10, 7, 5, 0.72);
+    border: 1px solid #4a3526;
+    padding: 8px 14px;
+    cursor: pointer;
+    transition: color 0.25s ease, border-color 0.25s ease;
   }
-  .hint.fade { opacity: 0; }
+  .nav button:hover { color: #e8dcc0; border-color: #8a6a48; }
 
   /* ==========================================================
-     THE CASE BOARD — opens when the corkboard is clicked.
-     Four papers pinned to cork. Each opens a full case file.
+     THE CASE BOARD
      ========================================================== */
   .board-root {
     position: fixed; inset: 0; z-index: 60;
@@ -285,23 +323,19 @@
     display: flex; align-items: center; justify-content: center;
   }
   .board-root.show { opacity: 1; pointer-events: auto; }
-
-  .board-overlay {
-    position: absolute; inset: 0;
-    background: rgba(4,3,8,0.88);
-  }
+  .board-overlay { position: absolute; inset: 0; background: rgba(4,3,8,0.88); }
 
   .board {
     position: relative;
     width: min(92vw, 760px);
-    max-height: 86vh;
+    max-height: 88vh;
     background:
       radial-gradient(circle at 20% 30%, rgba(0,0,0,0.12) 0%, transparent 50%),
       radial-gradient(circle at 75% 70%, rgba(0,0,0,0.10) 0%, transparent 45%),
       #7a5538;
     border: 14px solid #3a2414;
     box-shadow: 0 0 0 2px #241408, 0 24px 70px rgba(0,0,0,0.8);
-    padding: 34px 28px;
+    padding: 30px 28px 26px;
     transform: scale(0.95);
     transition: transform 0.5s ease;
     overflow-y: auto;
@@ -311,15 +345,31 @@
   .board-title {
     font-size: 11px; letter-spacing: 5px;
     color: #d8c9a8; opacity: 0.55;
-    text-align: center; margin-bottom: 26px;
+    text-align: center; margin-bottom: 8px;
   }
+
+  /* the credentials strip: resume / github */
+  .creds {
+    text-align: center;
+    margin-bottom: 24px;
+  }
+  .creds a {
+    font-size: 10px; letter-spacing: 3px;
+    color: #e8dcc0;
+    text-decoration: none;
+    border: 1px solid #5a4028;
+    background: rgba(0,0,0,0.25);
+    padding: 6px 12px;
+    margin: 0 5px;
+    display: inline-block;
+  }
+  .creds a:hover { border-color: #c8a878; color: #fff; }
 
   .papers {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
     gap: 26px;
   }
-
   .paper {
     position: relative;
     background: linear-gradient(160deg, #e9ddc2 0%, #ddcfae 100%);
@@ -337,8 +387,6 @@
     transform: rotate(0deg) translateY(-4px) scale(1.02);
     box-shadow: 5px 10px 22px rgba(0,0,0,0.65);
   }
-
-  /* the red pin */
   .paper::before {
     content: '';
     position: absolute;
@@ -349,23 +397,12 @@
     background: radial-gradient(circle at 35% 30%, #ff7a6a, #b8241a 65%);
     box-shadow: 0 2px 3px rgba(0,0,0,0.5);
   }
-
   .paper .case-no {
     font-size: 10px; letter-spacing: 3px;
-    color: #8a2018;
-    margin-bottom: 8px;
+    color: #8a2018; margin-bottom: 8px;
   }
-  .paper h3 {
-    font-size: 15px;
-    letter-spacing: 0.5px;
-    margin-bottom: 8px;
-    font-weight: bold;
-  }
-  .paper p {
-    font-size: 11.5px;
-    line-height: 1.55;
-    color: #4a3c2c;
-  }
+  .paper h3 { font-size: 15px; margin-bottom: 8px; font-weight: bold; }
+  .paper p  { font-size: 11.5px; line-height: 1.55; color: #4a3c2c; }
   .paper .status {
     margin-top: 12px;
     font-size: 9px; letter-spacing: 3px;
@@ -378,7 +415,7 @@
   }
 
   /* ==========================================================
-     THE CASE FILE — a single dossier, opened from the board
+     THE CASE FILE
      ========================================================== */
   .file-root {
     position: fixed; inset: 0; z-index: 70;
@@ -387,11 +424,7 @@
     display: flex; align-items: center; justify-content: center;
   }
   .file-root.show { opacity: 1; pointer-events: auto; }
-
-  .file-overlay {
-    position: absolute; inset: 0;
-    background: rgba(4,3,8,0.9);
-  }
+  .file-overlay { position: absolute; inset: 0; background: rgba(4,3,8,0.9); }
 
   .case-file {
     position: relative;
@@ -408,14 +441,8 @@
     line-height: 1.65;
   }
   .file-root.show .case-file { transform: translateY(0); }
-
-  .case-file .case-no {
-    font-size: 10px; letter-spacing: 4px; color: #8a2018;
-  }
-  .case-file h2 {
-    font-size: 21px; margin: 6px 0 4px;
-    letter-spacing: 0.5px;
-  }
+  .case-file .case-no { font-size: 10px; letter-spacing: 4px; color: #8a2018; }
+  .case-file h2 { font-size: 21px; margin: 6px 0 4px; }
   .case-file .stamp {
     position: absolute;
     top: 30px; right: 26px;
@@ -453,130 +480,100 @@
     padding: 4px;
   }
   .board-close { color: #d8c9a8; top: 8px; right: 10px; }
-
-
-  .examine-root {
-    position: fixed; inset: 0; z-index: 50;
-    opacity: 0; pointer-events: none;
-    transition: opacity 0.55s ease;
-    display: flex; align-items: center; justify-content: center;
-  }
-  .examine-root.show { opacity: 1; }
-  body.is-touch .examine-root.show { pointer-events: auto; }
-
-  .examine-overlay {
-    position: absolute; inset: 0;
-    background: radial-gradient(circle at center, rgba(4,3,8,0.75) 0%, rgba(4,3,8,0.92) 100%);
-  }
-  .examine-frame {
-    position: relative;
-    width: min(78vw, 560px);
-    height: min(52vh, 430px);
-    border: 10px solid #2a1810;
-    box-shadow: 0 0 0 2px #4a2c1a, 0 20px 60px rgba(0,0,0,0.75);
-    transform: scale(0.94);
-    transition: transform 0.55s ease;
-    background: #1a100c;
-    overflow: hidden;
-  }
-  .examine-root.show .examine-frame { transform: scale(1); }
-  .examine-img {
-    width: 100%; height: 100%;
-    background-image: url('room_centerpiece.jpg');
-    background-repeat: no-repeat;
-    image-rendering: pixelated; image-rendering: crisp-edges;
-  }
-  .examine-frame::after {
-    content: ''; position: absolute; inset: 0; pointer-events: none;
-    box-shadow: inset 0 0 60px rgba(0,0,0,0.55);
-  }
 </style>
 </head>
 <body>
 
-<!-- The room -->
-<div class="room-wrap" id="room">
-  <div class="room-inner">
+<!-- The room — fits the screen, no scrolling -->
+<div class="viewport">
+  <div id="stage">
     <img class="room-img" id="roomImg" src="room_centerpiece.jpg"
          alt="A dim study at night. A man reads by a fireplace as rain falls outside the window.">
 
-    <!-- ===== LIVING EFFECTS ===== -->
+    <!-- living effects -->
     <div class="fx fire-glow"></div>
     <div class="fx fire-glow2"></div>
     <div class="fx room-glow"></div>
-    <div class="fx lightning" id="lightning"></div>
     <div class="fx lamp-glow"></div>
     <div class="fx lamp-pool"></div>
     <div class="fx globe-spin"></div>
+    <div class="fx window-clean"></div>
+    <div class="fx lightning" id="lightning"></div>
     <div class="fx foot-floor"></div>
     <div class="fx foot-sprite"></div>
-    <!-- embers are added by JS -->
+    <div class="fx steam-patch"></div>
+    <div class="fx drop-box" id="dropBox"></div>
+    <div class="steam s1"></div>
+    <div class="steam s2"></div>
+    <div class="steam s3"></div>
 
-    <!-- ===== HOTSPOTS ===== -->
-    <div class="hotspot" style="left:56.5%; top:47.5%; width:7%; height:15%;"
-         data-zoom="700" data-x="60.5" data-y="55.5" aria-label="Look closer at the book"></div>
-    <div class="hotspot" style="left:45.5%; top:57.5%; width:6%; height:10%;"
-         data-zoom="700" data-x="48" data-y="62" aria-label="Look closer at the table"></div>
-    <div class="hotspot" style="left:63%; top:11%; width:17%; height:20%;"
-         data-zoom="420" data-x="73" data-y="17" aria-label="Look closer at the portraits"></div>
-    <div class="hotspot" style="left:0.5%; top:30%; width:9%; height:26%;"
-         data-zoom="520" data-x="0" data-y="42" data-action="cases" aria-label="Open the pinned cases"></div>
-    <div class="hotspot" style="left:13%; top:20%; width:9.5%; height:18%;"
-         data-zoom="560" data-x="14" data-y="26" aria-label="Look closer at the framed page"></div>
+    <!-- the corkboard: the door to the cases -->
+    <div class="hotspot" id="casesHotspot"
+         style="left:0.5%; top:30%; width:9%; height:26%;"
+         aria-label="Open the pinned cases"></div>
   </div>
 </div>
 
 <!-- thunder wash -->
 <div class="room-flash" id="roomFlash"></div>
 
-<!-- Edge vignettes -->
-<div class="edge edge-left"></div>
-<div class="edge edge-right"></div>
+<!-- bottom nav: always-findable entrances -->
+<div class="nav">
+  <button id="navCases">CASES</button>
+  <button id="navSound">SOUND: OFF</button>
+</div>
 
-<!-- Hint -->
-<div class="hint" id="hint">DRAG TO LOOK AROUND</div>
+<!-- background music (default off; user-started) -->
+<audio id="bgm" src="soundtrack.mp3" loop preload="none"></audio>
+<!-- ambience fallbacks: fire crackle + rain/thunder, both loop continuously -->
+<audio id="fireSnd" src="fire.mp3" loop preload="none"></audio>
+<audio id="thunderSnd" src="thunder.mp3" loop preload="none"></audio>
+<!-- lightning clap: fires in sync with each visual strike -->
+<audio id="lightningSnd" src="lightning.mp3" preload="auto"></audio>
 
-<!-- The case board (opens when the corkboard is clicked) -->
+<!-- The case board -->
 <div class="board-root" id="boardRoot">
   <div class="board-overlay" id="boardOverlay"></div>
   <div class="board">
     <button class="board-close" id="boardClose" aria-label="Close">×</button>
     <div class="board-title">OPEN CASES</div>
-    <div class="papers">
 
+    <!-- credentials: put your real links here -->
+    <div class="creds">
+      <a href="resume.pdf" target="_blank" rel="noopener">RESUME</a>
+      <a href="https://github.com/shabad023" target="_blank" rel="noopener">GITHUB</a>
+    </div>
+
+    <div class="papers">
       <div class="paper" data-case="1">
         <div class="case-no">CASE No. 001</div>
         <h3>The Overloaded Grid</h3>
         <p>A city's EV chargers strain under demand no one predicted. Three agents were dispatched to learn its rhythm — and reprice it.</p>
         <div class="status">CLOSED</div>
       </div>
-
       <div class="paper" data-case="2">
         <div class="case-no">CASE No. 002</div>
         <h3>The Volatile Surface</h3>
         <p>Beneath the NIFTY50, an invisible surface bends and shifts. The task: predict its shape before the market draws it.</p>
         <div class="status">CLOSED</div>
       </div>
-
       <div class="paper" data-case="3">
         <div class="case-no">CASE No. 003</div>
         <h3>The Price of Rain</h3>
         <p>50,000 rides across three cities. Somewhere between 1.5x and 1.75x, passengers quietly stop forgiving the price.</p>
         <div class="status">CLOSED</div>
       </div>
-
       <div class="paper" data-case="4">
         <div class="case-no">CASE No. 004</div>
         <h3>The Buried Lecture</h3>
         <p>Hours of recorded lectures; one answer buried somewhere inside. A system was built to find the exact minute it hides in.</p>
         <div class="status">CLOSED</div>
       </div>
-
     </div>
   </div>
 </div>
 
-<!-- The case file (opens from a paper on the board) -->
+<!-- The case files -->
 <div class="file-root" id="fileRoot">
   <div class="file-overlay" id="fileOverlay"></div>
 
@@ -593,7 +590,7 @@
     <p>The system learned demand rhythms and adjusted tariffs to smooth load across stations — demonstrating that multi-agent pricing beats static tariffs on utilization balance.</p>
     <h4>INSTRUMENTS</h4>
     <p>Python · scikit-learn (Random Forest) · multi-agent architecture · ST-EVCDP · ACN-Data</p>
-    <div class="evidence">EVIDENCE: <a href="#" target="_blank" rel="noopener">github.com/yourusername — link pending</a></div>
+    <div class="evidence">EVIDENCE: <a href="#" target="_blank" rel="noopener">github repo — link pending</a></div>
   </div>
 
   <div class="case-file" id="caseFile2" hidden>
@@ -609,7 +606,7 @@
     <p>Final public leaderboard score ≈ 4.2e-5, ranking 71 — competitive performance from an interpretable, non-black-box method.</p>
     <h4>INSTRUMENTS</h4>
     <p>Python · pandas · scipy (PCHIP) · options/volatility fundamentals</p>
-    <div class="evidence">EVIDENCE: <a href="#" target="_blank" rel="noopener">github.com/yourusername — link pending</a></div>
+    <div class="evidence">EVIDENCE: <a href="#" target="_blank" rel="noopener">github repo — link pending</a></div>
   </div>
 
   <div class="case-file" id="caseFile3" hidden>
@@ -625,7 +622,7 @@
     <p>Demand damage concentrates between 1.5x and 1.75x surge — the critical inflection band. Bangalore proved the most churn-sensitive city of the three.</p>
     <h4>INSTRUMENTS</h4>
     <p>Python · pandas · exploratory analysis · pricing strategy framing</p>
-    <div class="evidence">EVIDENCE: <a href="#" target="_blank" rel="noopener">github.com/yourusername — link pending</a></div>
+    <div class="evidence">EVIDENCE: <a href="#" target="_blank" rel="noopener">github repo — link pending</a></div>
   </div>
 
   <div class="case-file" id="caseFile4" hidden>
@@ -641,72 +638,83 @@
     <p>Ask a question, get the answer and the exact minute of the lecture it came from. Search time across hours of video drops to seconds.</p>
     <h4>INSTRUMENTS</h4>
     <p>Python · FFmpeg · Whisper · Ollama (BGE-M3) · Llama 3.2 · Streamlit</p>
-    <div class="evidence">EVIDENCE: <a href="#" target="_blank" rel="noopener">github.com/yourusername — link pending</a></div>
+    <div class="evidence">EVIDENCE: <a href="#" target="_blank" rel="noopener">github repo — link pending</a></div>
   </div>
-</div>
-
-<!-- Examine view -->
-<div class="examine-root" id="examineRoot">
-  <div class="examine-overlay"></div>
-  <div class="examine-frame"><div class="examine-img" id="examineImg"></div></div>
 </div>
 
 <script>
 (function() {
-  const room       = document.getElementById('room');
-  const img        = document.getElementById('roomImg');
-  const hint       = document.getElementById('hint');
-  const examine    = document.getElementById('examineRoot');
-  const examineImg = document.getElementById('examineImg');
-  const hotspots   = document.querySelectorAll('.hotspot');
-  const lightning  = document.getElementById('lightning');
-  const roomFlash  = document.getElementById('roomFlash');
-  const roomInner  = document.querySelector('.room-inner');
+  /* ===== CONFIG =====
+     Moonlight Sonata, 1st movement (Adagio sostenuto) ≈ 54 BPM.
+     His foot taps once every two beats — a slow listening rhythm. */
+  const SONG_BPM = 54;
 
-  /* ----- center the opening view on the man ----- */
-  function centerView() {
-    const scrollable = room.scrollWidth - room.clientWidth;
-    if (scrollable > 0) room.scrollLeft = scrollable / 2;
-  }
-  if (img.complete && img.naturalWidth > 0) centerView();
-  else img.addEventListener('load', centerView);
-  window.addEventListener('resize', centerView);
+  const stage     = document.getElementById('stage');
+  const img       = document.getElementById('roomImg');
+  const lightning = document.getElementById('lightning');
+  const roomFlash = document.getElementById('roomFlash');
+  const bgm       = document.getElementById('bgm');
+  const navSound  = document.getElementById('navSound');
+  const navCases  = document.getElementById('navCases');
+  const casesHot  = document.getElementById('casesHotspot');
 
-  /* ----- hint fade ----- */
-  room.addEventListener('scroll', function() { hint.classList.add('fade'); }, { once: true });
-  setTimeout(function() { hint.classList.add('fade'); }, 7000);
-
-  /* ----- keyboard ----- */
-  document.addEventListener('keydown', function(e) {
-    if (e.key === 'ArrowRight') { room.scrollBy({ left: 130, behavior: 'smooth' }); hint.classList.add('fade'); e.preventDefault(); }
-    if (e.key === 'ArrowLeft')  { room.scrollBy({ left: -130, behavior: 'smooth' }); hint.classList.add('fade'); e.preventDefault(); }
-    if (e.key === 'Escape') {
-      const fr = document.getElementById('fileRoot');
-      const br = document.getElementById('boardRoot');
-      if (fr && fr.classList.contains('show')) { fr.classList.remove('show'); }
-      else if (br && br.classList.contains('show')) { br.classList.remove('show'); }
-      else { examine.classList.remove('show'); }
+  /* ----- FIT THE ROOM TO THE SCREEN (cover) -----
+     The stage takes the SMALLEST size that completely fills the
+     viewport while keeping the image's aspect ratio. No black
+     bars — on narrow screens the room's far edges crop away
+     instead. All % overlays stay glued to the image. */
+  function fitStage() {
+    if (!img.naturalWidth) return;
+    const ar = img.naturalWidth / img.naturalHeight;
+    let w = window.innerWidth;
+    let h = w / ar;
+    if (h < window.innerHeight) {
+      h = window.innerHeight;
+      w = h * ar;
     }
-  });
+    stage.style.width  = w + 'px';
+    stage.style.height = h + 'px';
+  }
+  if (img.complete && img.naturalWidth > 0) fitStage();
+  else img.addEventListener('load', fitStage);
+  window.addEventListener('resize', fitStage);
 
   /* ----- EMBERS ----- */
   const EMBER_COUNT = 7;
   for (let i = 0; i < EMBER_COUNT; i++) {
     const e = document.createElement('div');
     e.className = 'ember';
-    const x = 67 + Math.random() * 10;
-    const y = 66 + Math.random() * 8;
-    e.style.left = x + '%';
-    e.style.top  = y + '%';
+    e.style.left = (67 + Math.random() * 10) + '%';
+    e.style.top  = (66 + Math.random() * 8) + '%';
     e.style.animationDuration = (2.4 + Math.random() * 2.2) + 's';
     e.style.animationDelay    = (Math.random() * 3) + 's';
-    roomInner.appendChild(e);
+    stage.appendChild(e);
   }
 
-  /* ----- LIGHTNING + THUNDER -----
-     A strike roughly every 5 seconds (4.5–6.5s, randomized so it
-     never feels mechanical). The window swells bright once, the room
-     catches a faint wash. No flicker — single smooth rise and fall. */
+  /* ----- RAIN OUTSIDE THE WINDOW -----
+     Each streak picks one pane (column band × row band) and falls
+     through it forever — fast, like real rain seen from inside. */
+  const dropBox = document.getElementById('dropBox');
+  /* spawn bands sit toward each pane's left so the wind drift
+     (rightward) finishes inside the same pane */
+  const COLS = [[2, 13], [37, 48], [71, 82]];
+  const ROWS = [1, 27, 54, 81];                   /* pane top edges, % */
+  const DROP_COUNT = 102;
+  for (let i = 0; i < DROP_COUNT; i++) {
+    const d = document.createElement('div');
+    d.className = 'droplet';
+    const col = COLS[Math.floor(Math.random() * COLS.length)];
+    const row = ROWS[Math.floor(Math.random() * ROWS.length)];
+    d.style.left = (col[0] + Math.random() * (col[1] - col[0])) + '%';
+    d.style.top  = row + '%';
+    d.style.animationDuration = (0.35 + Math.random() * 0.4) + 's';
+    d.style.animationDelay    = (Math.random() * 2) + 's';
+    dropBox.appendChild(d);
+  }
+
+  /* ----- LIGHTNING (visual + a low clap when sound is on) ----- */
+  const lightningSnd = document.getElementById('lightningSnd');
+  lightningSnd.volume = 0.12;
   function scheduleLightning() {
     const wait = 4500 + Math.random() * 2000;
     setTimeout(function() {
@@ -715,19 +723,166 @@
       void lightning.offsetWidth;
       lightning.classList.add('strike');
       roomFlash.classList.add('swell');
+      if (musicOn && !document.hidden) {
+        lightningSnd.currentTime = 0;
+        lightningSnd.play().catch(function(){});
+      }
       scheduleLightning();
     }, wait);
   }
   scheduleLightning();
 
-  /* ----- THE CASE BOARD & CASE FILES ----- */
+  /* ----- SOUND TOGGLE -----
+     Default OFF (browsers require a click before any audio anyway).
+     One button turns on the whole soundscape:
+       music — Moonlight Sonata (its own element, untouched by the rest)
+       fire  — crackle ambience, continuous crossfade loop
+       rain  — rain/thunder ambience, continuous crossfade loop
+
+     CROSSFADE LOOPING: each ambience track plays through, and ~2
+     seconds before it ends a fresh copy starts from the beginning,
+     fading in while the ending copy fades out. The two overlap, so
+     the sound literally never stops or gaps. If Web Audio can't
+     load (e.g. opening the page as a local file), plain looping
+     <audio> elements take over as a fallback. */
+  const fireSnd    = document.getElementById('fireSnd');
+  const thunderSnd = document.getElementById('thunderSnd');
+  bgm.volume        = 0.55;
+  const FIRE_VOL = 0.12;
+  const RAIN_VOL = 0.09;
+  fireSnd.volume    = FIRE_VOL;     /* fallback volumes */
+  thunderSnd.volume = RAIN_VOL;
+
+  let actx = null;
+  function getCtx() {
+    if (!actx) {
+      try { actx = new (window.AudioContext || window.webkitAudioContext)(); }
+      catch (e) { actx = null; }
+    }
+    return actx;
+  }
+
+  /* A crossfade looper for one ambience file. */
+  function makeLooper(url, volume, fallbackEl) {
+    const L = {
+      buffer: null, ready: false, failed: false,
+      playing: false, sources: [], timer: null, master: null
+    };
+    L.load = function() {
+      const ctx = getCtx();
+      if (!ctx) { L.failed = true; return; }
+      L.master = ctx.createGain();
+      L.master.gain.value = volume;
+      L.master.connect(ctx.destination);
+      fetch(url)
+        .then(function(r) { return r.arrayBuffer(); })
+        .then(function(b) { return ctx.decodeAudioData(b); })
+        .then(function(decoded) {
+          L.buffer = decoded; L.ready = true;
+          /* if the user already turned sound on, switch over now */
+          if (L.playing) { fallbackEl.pause(); L._schedule(ctx.currentTime + 0.05); }
+        })
+        .catch(function() { L.failed = true; });
+    };
+    L._piece = function(when, overlap) {
+      const ctx = getCtx();
+      const dur = L.buffer.duration;
+      const src = ctx.createBufferSource();
+      src.buffer = L.buffer;
+      const g = ctx.createGain();
+      src.connect(g); g.connect(L.master);
+      /* fade in over the overlap, hold, fade out over the overlap */
+      g.gain.setValueAtTime(0, when);
+      g.gain.linearRampToValueAtTime(1, when + overlap);
+      g.gain.setValueAtTime(1, when + dur - overlap);
+      g.gain.linearRampToValueAtTime(0, when + dur);
+      src.start(when);
+      src.stop(when + dur + 0.1);
+      L.sources.push(src);
+      if (L.sources.length > 3) L.sources.shift();
+    };
+    L._schedule = function(startAt) {
+      const ctx = getCtx();
+      const dur = L.buffer.duration;
+      const overlap = Math.min(2, dur / 3);   /* 2s, or less for short files */
+      L._piece(startAt, overlap);
+      const nextAt = startAt + dur - overlap;
+      const msUntil = Math.max(50, (nextAt - ctx.currentTime - 0.6) * 1000);
+      L.timer = setTimeout(function() {
+        if (L.playing) L._schedule(nextAt);
+      }, msUntil);
+    };
+    L.start = function() {
+      L.playing = true;
+      const ctx = getCtx();
+      if (L.ready && ctx) {
+        if (ctx.state === 'suspended') ctx.resume();
+        L._schedule(ctx.currentTime + 0.05);
+      } else {
+        if (!L.failed && !L.buffer) L.load();
+        fallbackEl.play().catch(function(){});
+      }
+    };
+    L.stop = function() {
+      L.playing = false;
+      if (L.timer) { clearTimeout(L.timer); L.timer = null; }
+      L.sources.forEach(function(s) { try { s.stop(); } catch(e){} });
+      L.sources = [];
+      fallbackEl.pause();
+    };
+    return L;
+  }
+
+  const fireLoop = makeLooper('fire.mp3',    FIRE_VOL, fireSnd);
+  const rainLoop = makeLooper('thunder.mp3', RAIN_VOL, thunderSnd);
+
+  const beatSeconds = (60 / SONG_BPM) * 2;
+  document.documentElement.style.setProperty('--beat', beatSeconds + 's');
+
+  let musicOn = false;
+  function setMusic(on) {
+    musicOn = on;
+    if (on) {
+      bgm.play().then(function() {
+        document.body.classList.add('music-on');
+        navSound.textContent = 'SOUND: ON';
+      }).catch(function() {
+        musicOn = false;
+        navSound.textContent = 'SOUND: OFF';
+      });
+      fireLoop.start();
+      rainLoop.start();
+    } else {
+      bgm.pause();
+      fireLoop.stop();
+      rainLoop.stop();
+      lightningSnd.pause();
+      document.body.classList.remove('music-on');
+      navSound.textContent = 'SOUND: OFF';
+    }
+  }
+  navSound.addEventListener('click', function() { setMusic(!musicOn); });
+
+  /* ----- TAB AWARENESS -----
+     The room only plays its music while you're actually in it.
+     Switch to another tab → the song pauses. Come back → it
+     resumes, but only if you had turned the sound on yourself. */
+  document.addEventListener('visibilitychange', function() {
+    if (document.hidden) {
+      if (musicOn) { bgm.pause(); fireLoop.stop(); rainLoop.stop(); }
+    } else {
+      if (musicOn) { bgm.play().catch(function(){}); fireLoop.start(); rainLoop.start(); }
+    }
+  });
+
+  /* ----- THE CASE BOARD & FILES ----- */
   const boardRoot    = document.getElementById('boardRoot');
   const boardOverlay = document.getElementById('boardOverlay');
   const boardClose   = document.getElementById('boardClose');
   const fileRoot     = document.getElementById('fileRoot');
   const fileOverlay  = document.getElementById('fileOverlay');
 
-  function openBoard()  { hideExamine(); boardRoot.classList.add('show'); }
+  function openBoard()  { boardRoot.classList.add('show'); }
   function closeBoard() { boardRoot.classList.remove('show'); }
   function openFile(n) {
     document.querySelectorAll('.case-file').forEach(function(f) { f.hidden = true; });
@@ -737,6 +892,8 @@
   }
   function closeFile() { fileRoot.classList.remove('show'); }
 
+  navCases.addEventListener('click', openBoard);
+  casesHot.addEventListener('click', openBoard);
   boardOverlay.addEventListener('click', closeBoard);
   boardClose.addEventListener('click', closeBoard);
   fileOverlay.addEventListener('click', closeFile);
@@ -747,45 +904,13 @@
     p.addEventListener('click', function() { openFile(p.getAttribute('data-case')); });
   });
 
-  /* ----- SHARED EXAMINE SYSTEM ----- */
-  const isTouch = window.matchMedia('(hover: none)').matches;
-  if (isTouch) document.body.classList.add('is-touch');
-
-  function aimExamine(hs) {
-    const zoom = hs.getAttribute('data-zoom') || '500';
-    const x    = hs.getAttribute('data-x')    || '50';
-    const y    = hs.getAttribute('data-y')    || '50';
-    examineImg.style.backgroundSize     = zoom + '%';
-    examineImg.style.backgroundPosition = x + '% ' + y + '%';
-  }
-  function showExamine(hs) {
-    aimExamine(hs);
-    examine.classList.add('show');
-    hint.classList.add('fade');
-  }
-  function hideExamine() { examine.classList.remove('show'); }
-
-  hotspots.forEach(function(hs) {
-    const isCases = hs.getAttribute('data-action') === 'cases';
-    if (isTouch) {
-      hs.addEventListener('click', function(e) {
-        e.stopPropagation();
-        if (isCases) { openBoard(); return; }
-        if (examine.classList.contains('show')) hideExamine();
-        else showExamine(hs);
-      });
-    } else {
-      hs.addEventListener('mouseenter', function() { showExamine(hs); });
-      hs.addEventListener('mouseleave', hideExamine);
-      if (isCases) {
-        hs.addEventListener('click', function(e) {
-          e.stopPropagation();
-          openBoard();
-        });
-      }
+  /* Escape closes layers progressively: file → board */
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+      if (fileRoot.classList.contains('show')) closeFile();
+      else if (boardRoot.classList.contains('show')) closeBoard();
     }
   });
-  if (isTouch) examine.addEventListener('click', hideExamine);
 })();
 </script>
 
