@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>about — shabadwashere</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box;
+      cursor: url('magnifier.png') 12 12, auto; }
+  html, body {
+    min-height: 100%;
+    background: #040308;
+    font-family: 'Courier New', monospace;
+    color: #b9a890;
+  }
+  body { padding: 60px 16px 90px; display: flex; justify-content: center; }
+
+  /* ---- NAV ---- */
+    .nav {
+    position: fixed;
+    top: 14px; left: 50%;
+    transform: translateX(-50%);
+    z-index: 20;
+    display: flex; gap: 10px;
+    align-items: center;
+  }
+  .wordmark {
+    font-size: 12px; letter-spacing: 4px;
+    color: #e8dcc0;
+    padding: 8px 10px 8px 0;
+    text-shadow: 0 0 8px #000;
+    white-space: nowrap;
+  }
+  .nav-link {
+    font-family: 'Courier New', monospace;
+    font-size: 11px; letter-spacing: 3px;
+    color: #b9a890;
+    background: rgba(10,7,5,0.72);
+    border: 1px solid #4a3526;
+    padding: 8px 14px;
+    text-decoration: none;
+    display: inline-block;
+    transition: color 0.25s ease, border-color 0.25s ease;
+  }
+  .nav-link:hover { color: #e8dcc0; border-color: #8a6a48; }
+  .nav-link.current { color: #e8dcc0; border-color: #8a6a48; }
+
+  /* ---- THE DOSSIER ---- */
+  .dossier {
+    position: relative;
+    width: min(94vw, 640px);
+    background: linear-gradient(170deg, #ece0c6 0%, #ded0ae 100%);
+    color: #2c2218;
+    padding: 44px 38px 34px;
+    box-shadow: 0 24px 70px rgba(0,0,0,0.85);
+    font-size: 13.5px;
+    line-height: 1.7;
+  }
+  .dossier .file-no { font-size: 10px; letter-spacing: 4px; color: #8a2018; }
+  .dossier h1 { font-size: 22px; margin: 6px 0 2px; letter-spacing: 0.5px; }
+  .dossier .alias { font-size: 11px; color: #6a5436; margin-bottom: 4px; }
+  .dossier .stamp {
+    position: absolute; top: 34px; right: 28px;
+    font-size: 11px; letter-spacing: 4px;
+    color: #8a2018; border: 2px solid #8a2018;
+    padding: 4px 10px; transform: rotate(7deg); opacity: 0.75;
+  }
+  .dossier h4 {
+    margin: 24px 0 4px;
+    font-size: 11px; letter-spacing: 3px;
+    color: #6a5436;
+  }
+  .dossier p { color: #3c3022; margin-bottom: 8px; }
+  .dossier .contact {
+    margin-top: 28px; padding-top: 16px;
+    border-top: 1px dashed #a89674;
+    font-size: 12px; color: #6a5436;
+  }
+  .dossier .contact a { color: #8a2018; }
+</style>
+</head>
+<body>
+
+<div class="dossier">
+  <div class="file-no">FILE No. 000 — PERSON OF INTEREST</div>
+  <h1>Shabadpreet Singh</h1>
+  <div class="alias">known to this site as: the one who was here</div>
+  <div class="stamp">ACTIVE</div>
+
+  <h4>BACKGROUND</h4>
+  <p>An architecture student at IIT Roorkee — fourth year of a five-year Bachelor of Architecture — who discovered, somewhere between studio deadlines and structural drawings, that the thing he actually loves about buildings is the thing he loves about everything: figuring out why they stand, why they fail, and what the people inside them need.</p>
+  <p>So he started investigating other structures. Markets. Pricing systems. Demand curves. Machine learning pipelines. The cases pinned in the next room are the record of that investigation.</p>
+
+  <h4>CURRENT OCCUPATION</h4>
+  <p>Placement manager at his college — the person responsible for connecting hundreds of students with the companies that hire them. Which means he reads job markets, talks to recruiters, and understands what companies actually want, from both sides of the table.</p>
+
+  <h4>SEEKING</h4>
+  <p>A six-month internship beginning January 2027, in product management, data analytics, or data science. He brings an architect's structural thinking, an analyst's patience with data, and a working portfolio of shipped investigations.</p>
+
+  <h4>INSTRUMENTS</h4>
+  <p>Python · pandas · scikit-learn · scipy · Excel modeling · Streamlit · Whisper/FFmpeg · RAG pipelines with local LLMs · and an unreasonable attention to detail.</p>
+
+  <h4>MISCELLANEOUS INTELLIGENCE</h4>
+  <p>Plays basketball. Listens to Frank Ocean, Pink Floyd, and Radiohead with full attention, never as background. Reads detective fiction and believes most good analysis is just detective work with cleaner data. Built this room himself, one strange decision at a time.</p>
+
+  <div class="contact">
+    REACH THE SUBJECT:
+    <a href="mailto:youremail@example.com">youremail@example.com</a> ·
+    <a href="https://github.com/shabad023" target="_blank" rel="noopener">github.com/shabad023</a> ·
+    <a href="resume.pdf" target="_blank" rel="noopener">resume</a>
+  </div>
+</div>
+
+<div class="nav">
+  <span class="wordmark">SHABADWASHERE</span>
+  <a class="nav-link" href="index.html">THE STUDY</a>
+  <a class="nav-link" href="cases.html">CASES</a>
+  <a class="nav-link current" href="about.html">ABOUT</a>
+</div>
+
+</body>
+</html>

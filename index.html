@@ -8,7 +8,8 @@
   /* ==========================================================
      PAGE BASICS — the dark void around the room
      ========================================================== */
-  * { margin: 0; padding: 0; box-sizing: border-box; }
+  * { margin: 0; padding: 0; box-sizing: border-box;
+      cursor: url('magnifier.png') 12 12, auto; }
   html, body {
     height: 100%;
     background: #040308;
@@ -320,23 +321,34 @@
   /* ==========================================================
      BOTTOM NAV — small, dim, always findable
      ========================================================== */
-  .nav {
+    .nav {
     position: fixed;
-    bottom: 14px; right: 16px;
+    top: 14px; left: 50%;
+    transform: translateX(-50%);
     z-index: 20;
     display: flex; gap: 10px;
+    align-items: center;
   }
-  .nav button {
+  .nav button, .wordmark {
+    font-size: 12px; letter-spacing: 4px;
+    color: #e8dcc0;
+    padding: 8px 10px 8px 0;
+    text-shadow: 0 0 8px #000;
+    white-space: nowrap;
+  }
+  .nav-link {
     font-family: 'Courier New', monospace;
     font-size: 11px; letter-spacing: 3px;
     color: #b9a890;
     background: rgba(10, 7, 5, 0.72);
     border: 1px solid #4a3526;
     padding: 8px 14px;
-    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
     transition: color 0.25s ease, border-color 0.25s ease;
   }
-  .nav button:hover { color: #e8dcc0; border-color: #8a6a48; }
+  .nav button:hover, .nav-link:hover { color: #e8dcc0; border-color: #8a6a48; }
+  .nav-link.current { color: #e8dcc0; border-color: #8a6a48; }
 
   /* ==========================================================
      THE CASE BOARD
@@ -546,7 +558,10 @@
 
 <!-- bottom nav: always-findable entrances -->
 <div class="nav">
-  <button id="navCases">CASES</button>
+  <span class="wordmark">SHABADWASHERE</span>
+  <a class="nav-link current" href="index.html">THE STUDY</a>
+  <a class="nav-link" href="cases.html">CASES</a>
+  <a class="nav-link" href="about.html">ABOUT</a>
   <button id="navSound">SOUND: OFF</button>
 </div>
 
@@ -557,117 +572,6 @@
 <audio id="thunderSnd" src="thunder.mp3" loop preload="none"></audio>
 <!-- lightning clap: fires in sync with each visual strike -->
 <audio id="lightningSnd" src="lightning.mp3" preload="auto"></audio>
-
-<!-- The case board -->
-<div class="board-root" id="boardRoot">
-  <div class="board-overlay" id="boardOverlay"></div>
-  <div class="board">
-    <button class="board-close" id="boardClose" aria-label="Close">×</button>
-    <div class="board-title">OPEN CASES</div>
-
-    <!-- credentials: put your real links here -->
-    <div class="creds">
-      <a href="resume.pdf" target="_blank" rel="noopener">RESUME</a>
-      <a href="https://github.com/shabad023" target="_blank" rel="noopener">GITHUB</a>
-    </div>
-
-    <div class="papers">
-      <div class="paper" data-case="1">
-        <div class="case-no">CASE No. 001</div>
-        <h3>The Overloaded Grid</h3>
-        <p>A city's EV chargers strain under demand no one predicted. Three agents were dispatched to learn its rhythm — and reprice it.</p>
-        <div class="status">CLOSED</div>
-      </div>
-      <div class="paper" data-case="2">
-        <div class="case-no">CASE No. 002</div>
-        <h3>The Volatile Surface</h3>
-        <p>Beneath the NIFTY50, an invisible surface bends and shifts. The task: predict its shape before the market draws it.</p>
-        <div class="status">CLOSED</div>
-      </div>
-      <div class="paper" data-case="3">
-        <div class="case-no">CASE No. 003</div>
-        <h3>The Price of Rain</h3>
-        <p>50,000 rides across three cities. Somewhere between 1.5x and 1.75x, passengers quietly stop forgiving the price.</p>
-        <div class="status">CLOSED</div>
-      </div>
-      <div class="paper" data-case="4">
-        <div class="case-no">CASE No. 004</div>
-        <h3>The Buried Lecture</h3>
-        <p>Hours of recorded lectures; one answer buried somewhere inside. A system was built to find the exact minute it hides in.</p>
-        <div class="status">CLOSED</div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- The case files -->
-<div class="file-root" id="fileRoot">
-  <div class="file-overlay" id="fileOverlay"></div>
-
-  <div class="case-file" id="caseFile1" hidden>
-    <button class="file-close" aria-label="Close">×</button>
-    <div class="case-no">CASE No. 001</div>
-    <h2>The Overloaded Grid</h2>
-    <div class="stamp">SOLVED</div>
-    <h4>THE SITUATION</h4>
-    <p>Electric vehicle charging demand swings hard across hours and stations. Flat tariffs ignore it — overloading some stations, starving others, and leaving money and grid stability on the table.</p>
-    <h4>THE INVESTIGATION</h4>
-    <p>Built an agentic AI system on the ST-EVCDP and ACN-Data datasets: a three-agent architecture where a demand-prediction agent (Random Forest), a tariff-optimization agent, and a coordination agent negotiate station pricing dynamically.</p>
-    <h4>FINDINGS</h4>
-    <p>The system learned demand rhythms and adjusted tariffs to smooth load across stations — demonstrating that multi-agent pricing beats static tariffs on utilization balance.</p>
-    <h4>INSTRUMENTS</h4>
-    <p>Python · scikit-learn (Random Forest) · multi-agent architecture · ST-EVCDP · ACN-Data</p>
-    <div class="evidence">EVIDENCE: <a href="#" target="_blank" rel="noopener">github repo — link pending</a></div>
-  </div>
-
-  <div class="case-file" id="caseFile2" hidden>
-    <button class="file-close" aria-label="Close">×</button>
-    <div class="case-no">CASE No. 002</div>
-    <h2>The Volatile Surface</h2>
-    <div class="stamp">SOLVED</div>
-    <h4>THE SITUATION</h4>
-    <p>Options on the NIFTY50 imply a hidden surface — volatility across strikes and expiries. A Kaggle competition asked: predict its shape with minimal error.</p>
-    <h4>THE INVESTIGATION</h4>
-    <p>Developed a hybrid approach centered on PCHIP interpolation across the volatility surface, balancing smoothness against fidelity to observed market points.</p>
-    <h4>FINDINGS</h4>
-    <p>Final public leaderboard score ≈ 4.2e-5, ranking 71 — competitive performance from an interpretable, non-black-box method.</p>
-    <h4>INSTRUMENTS</h4>
-    <p>Python · pandas · scipy (PCHIP) · options/volatility fundamentals</p>
-    <div class="evidence">EVIDENCE: <a href="#" target="_blank" rel="noopener">github repo — link pending</a></div>
-  </div>
-
-  <div class="case-file" id="caseFile3" hidden>
-    <button class="file-close" aria-label="Close">×</button>
-    <div class="case-no">CASE No. 003</div>
-    <h2>The Price of Rain</h2>
-    <div class="stamp">SOLVED</div>
-    <h4>THE SITUATION</h4>
-    <p>Rideshare surge pricing earns more per trip but quietly damages demand. The question: where exactly does the damage begin, and which city forgives least?</p>
-    <h4>THE INVESTIGATION</h4>
-    <p>Analyzed 50,000 trips across Delhi, Bangalore, and Mumbai — segmenting demand response by surge multiplier, city, and context to isolate the inflection point.</p>
-    <h4>FINDINGS</h4>
-    <p>Demand damage concentrates between 1.5x and 1.75x surge — the critical inflection band. Bangalore proved the most churn-sensitive city of the three.</p>
-    <h4>INSTRUMENTS</h4>
-    <p>Python · pandas · exploratory analysis · pricing strategy framing</p>
-    <div class="evidence">EVIDENCE: <a href="#" target="_blank" rel="noopener">github repo — link pending</a></div>
-  </div>
-
-  <div class="case-file" id="caseFile4" hidden>
-    <button class="file-close" aria-label="Close">×</button>
-    <div class="case-no">CASE No. 004</div>
-    <h2>The Buried Lecture</h2>
-    <div class="stamp">SOLVED</div>
-    <h4>THE SITUATION</h4>
-    <p>Recorded lectures hold answers nobody can find — hours of video, no index, no way to ask. The task: make video lectures answer questions, with receipts.</p>
-    <h4>THE INVESTIGATION</h4>
-    <p>Built an end-to-end RAG pipeline: FFmpeg audio extraction → Whisper transcription → BGE-M3 embeddings via Ollama → Llama 3.2 generating answers with clickable timestamps, deployed on Streamlit.</p>
-    <h4>FINDINGS</h4>
-    <p>Ask a question, get the answer and the exact minute of the lecture it came from. Search time across hours of video drops to seconds.</p>
-    <h4>INSTRUMENTS</h4>
-    <p>Python · FFmpeg · Whisper · Ollama (BGE-M3) · Llama 3.2 · Streamlit</p>
-    <div class="evidence">EVIDENCE: <a href="#" target="_blank" rel="noopener">github repo — link pending</a></div>
-  </div>
-</div>
 
 <script>
 (function() {
@@ -682,7 +586,6 @@
   const roomFlash = document.getElementById('roomFlash');
   const bgm       = document.getElementById('bgm');
   const navSound  = document.getElementById('navSound');
-  const navCases  = document.getElementById('navCases');
   const casesHot  = document.getElementById('casesHotspot');
 
   /* ----- FIT THE ROOM TO THE SCREEN (cover) -----
@@ -902,41 +805,9 @@
     }
   });
 
-  /* ----- THE CASE BOARD & FILES ----- */
-  const boardRoot    = document.getElementById('boardRoot');
-  const boardOverlay = document.getElementById('boardOverlay');
-  const boardClose   = document.getElementById('boardClose');
-  const fileRoot     = document.getElementById('fileRoot');
-  const fileOverlay  = document.getElementById('fileOverlay');
-
-  function openBoard()  { boardRoot.classList.add('show'); }
-  function closeBoard() { boardRoot.classList.remove('show'); }
-  function openFile(n) {
-    document.querySelectorAll('.case-file').forEach(function(f) { f.hidden = true; });
-    const f = document.getElementById('caseFile' + n);
-    if (f) f.hidden = false;
-    fileRoot.classList.add('show');
-  }
-  function closeFile() { fileRoot.classList.remove('show'); }
-
-  navCases.addEventListener('click', openBoard);
-  casesHot.addEventListener('click', openBoard);
-  boardOverlay.addEventListener('click', closeBoard);
-  boardClose.addEventListener('click', closeBoard);
-  fileOverlay.addEventListener('click', closeFile);
-  document.querySelectorAll('.file-close').forEach(function(btn) {
-    btn.addEventListener('click', closeFile);
-  });
-  document.querySelectorAll('.paper').forEach(function(p) {
-    p.addEventListener('click', function() { openFile(p.getAttribute('data-case')); });
-  });
-
-  /* Escape closes layers progressively: file → board */
-  document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') {
-      if (fileRoot.classList.contains('show')) closeFile();
-      else if (boardRoot.classList.contains('show')) closeBoard();
-    }
+  /* ----- THE CORKBOARD OPENS THE CASES PAGE ----- */
+  casesHot.addEventListener('click', function() {
+    window.location.href = 'cases.html';
   });
 })();
 </script>
