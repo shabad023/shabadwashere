@@ -2,9 +2,12 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>shabadwashere — debug</title>
+<title>shabadwashere</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <style>
+  /* ==========================================================
+     PAGE BASICS — dark void outside the room
+     ========================================================== */
   * { margin: 0; padding: 0; box-sizing: border-box; }
   html, body {
     height: 100%;
@@ -14,6 +17,9 @@
     color: #6a5a50;
   }
 
+  /* ==========================================================
+     THE ROOM — one image, drag/scroll sideways
+     ========================================================== */
   .room-wrap {
     width: 100vw; height: 100vh;
     overflow-x: auto; overflow-y: hidden;
@@ -24,48 +30,435 @@
   .room-wrap::-webkit-scrollbar-thumb { background: #3a2820; border-radius: 3px; }
 
   .room-inner { position: relative; height: 100vh; display: inline-block; }
+
   .room-img {
     height: 100vh; width: auto; display: block;
     image-rendering: pixelated; image-rendering: crisp-edges;
+    -ms-interpolation-mode: nearest-neighbor;
     user-select: none; -webkit-user-drag: none;
   }
 
-  /* === DEBUG: hotspot is VISIBLE so we can see where it is === */
+  /* ==========================================================
+     LIVING ROOM EFFECTS — pan with the image, never clickable
+     ========================================================== */
+  .fx { position: absolute; pointer-events: none; }
+
+  /* ---- FIRE GLOW (as before — no geometry wiggle) ---- */
+  .fire-glow {
+    left: 63%; top: 46%;
+    width: 18%; height: 38%;
+    background: radial-gradient(ellipse at center,
+      rgba(255,150,50,0.30) 0%,
+      rgba(255,110,30,0.15) 45%,
+      transparent 72%);
+    mix-blend-mode: screen;
+    animation: flickA 2.1s ease-in-out infinite;
+  }
+  .fire-glow2 {
+    left: 64.5%; top: 49%;
+    width: 15%; height: 32%;
+    background: radial-gradient(ellipse at center,
+      rgba(255,190,80,0.26) 0%,
+      rgba(255,140,40,0.10) 50%,
+      transparent 75%);
+    mix-blend-mode: screen;
+    animation: flickB 1.3s ease-in-out infinite;
+  }
+  @keyframes flickA {
+    0%, 100% { opacity: 0.85; transform: scale(1); }
+    25%      { opacity: 1.0;  transform: scale(1.02); }
+    50%      { opacity: 0.78; transform: scale(0.99); }
+    75%      { opacity: 0.95; transform: scale(1.01); }
+  }
+  @keyframes flickB {
+    0%, 100% { opacity: 0.7;  transform: scale(1); }
+    33%      { opacity: 1.0;  transform: scale(1.04); }
+    66%      { opacity: 0.62; transform: scale(0.98); }
+  }
+
+  /* Firelight breathing across the man and the floor */
+  .room-glow {
+    left: 40%; top: 30%;
+    width: 42%; height: 65%;
+    background: radial-gradient(ellipse at 70% 60%,
+      rgba(255,140,50,0.09) 0%,
+      transparent 70%);
+    mix-blend-mode: screen;
+    animation: breatheGlow 3.4s ease-in-out infinite;
+  }
+  @keyframes breatheGlow {
+    0%, 100% { opacity: 0.75; }
+    50%      { opacity: 1.0; }
+  }
+
+  /* ---- EMBERS ---- */
+  .ember {
+    position: absolute;
+    width: 3px; height: 3px;
+    background: #ffb050;
+    border-radius: 50%;
+    opacity: 0;
+    box-shadow: 0 0 4px rgba(255,150,60,0.8);
+    animation: emberRise linear infinite;
+  }
+  @keyframes emberRise {
+    0%   { opacity: 0;   transform: translateY(0) translateX(0); }
+    12%  { opacity: 0.9; }
+    60%  { opacity: 0.5; }
+    100% { opacity: 0;   transform: translateY(-90px) translateX(8px); }
+  }
+
+  /* ---- LIGHTNING ----
+     A single smooth brightening of the window glass — the painted
+     bolts in the image light up as if a new strike just happened.
+     One swell up, one swell down, ~1.2s total. No flicker, ever. */
+  .lightning {
+    left: 26.5%; top: 14.5%;
+    width: 12.8%; height: 48.5%;
+    background: radial-gradient(ellipse at 50% 35%,
+      rgba(215,228,255,0) 0%,
+      rgba(215,228,255,0) 100%);
+    mix-blend-mode: screen;
+    opacity: 0;
+  }
+  .lightning.strike {
+    animation: lightningSwell 1.25s ease-in-out;
+  }
+  @keyframes lightningSwell {
+    0%   { opacity: 0;    background: radial-gradient(ellipse at 50% 35%, rgba(215,228,255,0.45) 0%, rgba(190,205,245,0.18) 60%, transparent 100%); }
+    35%  { opacity: 1; }
+    100% { opacity: 0;    background: radial-gradient(ellipse at 50% 35%, rgba(215,228,255,0.45) 0%, rgba(190,205,245,0.18) 60%, transparent 100%); }
+  }
+
+  /* Faint thunder wash over the whole room, in sync with the strike */
+  .room-flash {
+    position: fixed; inset: 0;
+    background: rgba(190,205,240,0);
+    pointer-events: none; z-index: 7;
+  }
+  .room-flash.swell {
+    animation: thunderSwell 1.6s ease-in-out;
+  }
+  @keyframes thunderSwell {
+    0%   { background: rgba(190,205,240,0); }
+    35%  { background: rgba(190,205,240,0.045); }
+    100% { background: rgba(190,205,240,0); }
+  }
+
+  /* ---- OIL LAMP ----
+     The lamp on the desk gets its own living light: a small warm
+     glow around the chimney that shimmers faster and tighter than
+     the fireplace (small flames jitter, big fires roll), plus a
+     faint pool of light breathing on the desk surface below it. */
+  .lamp-glow {
+    left: 10.5%; top: 40%;
+    width: 5.5%; height: 14%;
+    background: radial-gradient(ellipse at center,
+      rgba(255,200,110,0.32) 0%,
+      rgba(255,160,60,0.14) 50%,
+      transparent 75%);
+    mix-blend-mode: screen;
+    animation: lampShimmer 0.7s ease-in-out infinite;
+  }
+  .lamp-pool {
+    left: 8%; top: 51%;
+    width: 10%; height: 11%;
+    background: radial-gradient(ellipse at center,
+      rgba(255,180,90,0.10) 0%,
+      transparent 70%);
+    mix-blend-mode: screen;
+    animation: lampPool 2.8s ease-in-out infinite;
+  }
+  @keyframes lampShimmer {
+    0%, 100% { opacity: 0.8;  transform: scale(1); }
+    30%      { opacity: 1.0;  transform: scale(1.03); }
+    55%      { opacity: 0.72; transform: scale(0.985); }
+    80%      { opacity: 0.92; transform: scale(1.015); }
+  }
+  @keyframes lampPool {
+    0%, 100% { opacity: 0.7; }
+    50%      { opacity: 1.0; }
+  }
+
+  /* ---- GLOBE ----
+     The globe turns continuously in one direction, like a real
+     globe given a lazy spin. Trick: a copy of the globe's face
+     inside a soft circular mask; its texture slides steadily one
+     way. Since one image can't wrap around a sphere forever, at
+     the end of each cycle the overlay fades out for a blink while
+     it snaps back to the start — the still globe underneath covers
+     the reset, so the eye just reads slow, endless turning.
+       bg-width  = 100 / 3.6  * 100 = 2777.8%
+       bg-pos-x  = 17.2 / 96.4 * 100 = 17.84%
+       bg-pos-y  = 46.6 / 91   * 100 = 51.2%  */
+  .globe-spin {
+    left: 17.2%; top: 46.6%;
+    width: 3.6%; height: 9%;
+    background-image: url('room_centerpiece.jpg');
+    background-repeat: no-repeat;
+    background-size: 2777.8% auto;
+    background-position: 17.55% 51.2%;
+    image-rendering: pixelated; image-rendering: crisp-edges;
+    -webkit-mask-image: radial-gradient(circle at center, black 42%, transparent 68%);
+    mask-image: radial-gradient(circle at center, black 42%, transparent 68%);
+    animation: globeTurn 9s linear infinite;
+  }
+  @keyframes globeTurn {
+    0%   { background-position: 17.55% 51.2%; opacity: 1; }
+    88%  { background-position: 18.12% 51.2%; opacity: 1; }
+    93%  { background-position: 18.12% 51.2%; opacity: 0; }
+    94%  { background-position: 17.55% 51.2%; opacity: 0; }
+    100% { background-position: 17.55% 51.2%; opacity: 1; }
+  }
+
+  /* ---- FOOT TAP ----
+     The real sprite approach, in miniature. Two layers sit exactly
+     where his planted shoe is painted:
+       1. shoe_floor.png — the same spot with the shoe digitally
+          removed and floor reconstructed behind it (always visible,
+          hidden beneath the sprite at rest)
+       2. shoe_sprite.png — a cutout of just the shoe, with
+          transparency around it
+     Every few seconds the sprite pivots at the heel: the toe lifts,
+     taps down, gives a smaller second bounce, and rests. Because
+     the floor patch sits beneath, nothing ghosts — the floor is
+     simply *there* when the toe rises off it. */
+  .foot-floor, .foot-sprite {
+    left: 62.34%; top: 82.44%;
+    width: 4.735%; height: 7.961%;
+    background-repeat: no-repeat;
+    background-size: 100% 100%;
+    image-rendering: pixelated; image-rendering: crisp-edges;
+  }
+  .foot-floor  { background-image: url('shoe_floor.png'); }
+  .foot-sprite {
+    background-image: url('shoe_sprite.png');
+    transform-origin: 10.7% 84.1%;        /* the heel */
+    animation: footTap 3.6s ease-in-out infinite;
+  }
+  @keyframes footTap {
+    0%, 84%  { transform: rotate(0deg); }
+    87.5%    { transform: rotate(-4.5deg); }
+    91%      { transform: rotate(0deg); }
+    93.5%    { transform: rotate(-2.2deg); }
+    96%      { transform: rotate(0deg); }
+    100%     { transform: rotate(0deg); }
+  }
+
+  /* ==========================================================
+     HOTSPOTS — invisible. The room rewards looking.
+     ========================================================== */
   .hotspot {
     position: absolute;
     cursor: pointer;
+    background: transparent;
     z-index: 4;
-    background: rgba(255, 60, 60, 0.35);     /* red so we can see */
-    border: 2px solid rgba(255, 100, 100, 0.9);
-    box-shadow: 0 0 0 2px rgba(0,0,0,0.4) inset;
-  }
-  .hotspot-book {
-    left: 33.5%; top: 51%;
-    width: 7.5%; height: 13%;
   }
 
-  /* === DEBUG status panel in the top-left, always visible === */
-  .debug-status {
-    position: fixed; top: 10px; left: 10px;
-    z-index: 999;
-    background: rgba(0,0,0,0.85);
-    color: #ff6;
-    padding: 8px 12px;
-    font-family: 'Courier New', monospace;
-    font-size: 12px;
-    line-height: 1.6;
-    border: 1px solid #5a3a28;
-    max-width: 260px;
+  /* Edge vignettes */
+  .edge {
+    position: fixed; top: 0; width: 120px; height: 100vh;
+    pointer-events: none; z-index: 8;
   }
-  .debug-status b { color: #fff; }
-  .debug-status .ok { color: #6f6; }
-  .debug-status .bad { color: #f66; }
+  .edge-left  { left: 0;  background: linear-gradient(to right, #040308 5%, transparent 100%); }
+  .edge-right { right: 0; background: linear-gradient(to left,  #040308 5%, transparent 100%); }
 
-  /* Examine view as before but simplified for debug */
+  /* Hint */
+  .hint {
+    position: fixed; bottom: 18px; left: 0; right: 0;
+    text-align: center; color: #6a5a50;
+    font-size: 11px; letter-spacing: 4px;
+    pointer-events: none; z-index: 9;
+    text-shadow: 0 0 6px #000, 0 0 10px #000;
+    transition: opacity 2.5s ease-out;
+  }
+  .hint.fade { opacity: 0; }
+
+  /* ==========================================================
+     THE CASE BOARD — opens when the corkboard is clicked.
+     Four papers pinned to cork. Each opens a full case file.
+     ========================================================== */
+  .board-root {
+    position: fixed; inset: 0; z-index: 60;
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.5s ease;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .board-root.show { opacity: 1; pointer-events: auto; }
+
+  .board-overlay {
+    position: absolute; inset: 0;
+    background: rgba(4,3,8,0.88);
+  }
+
+  .board {
+    position: relative;
+    width: min(92vw, 760px);
+    max-height: 86vh;
+    background:
+      radial-gradient(circle at 20% 30%, rgba(0,0,0,0.12) 0%, transparent 50%),
+      radial-gradient(circle at 75% 70%, rgba(0,0,0,0.10) 0%, transparent 45%),
+      #7a5538;
+    border: 14px solid #3a2414;
+    box-shadow: 0 0 0 2px #241408, 0 24px 70px rgba(0,0,0,0.8);
+    padding: 34px 28px;
+    transform: scale(0.95);
+    transition: transform 0.5s ease;
+    overflow-y: auto;
+  }
+  .board-root.show .board { transform: scale(1); }
+
+  .board-title {
+    font-size: 11px; letter-spacing: 5px;
+    color: #d8c9a8; opacity: 0.55;
+    text-align: center; margin-bottom: 26px;
+  }
+
+  .papers {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 26px;
+  }
+
+  .paper {
+    position: relative;
+    background: linear-gradient(160deg, #e9ddc2 0%, #ddcfae 100%);
+    color: #2c2218;
+    padding: 26px 18px 16px;
+    box-shadow: 3px 5px 14px rgba(0,0,0,0.55);
+    cursor: pointer;
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+  }
+  .paper:nth-child(1) { transform: rotate(-1.6deg); }
+  .paper:nth-child(2) { transform: rotate(1.1deg); }
+  .paper:nth-child(3) { transform: rotate(0.8deg); }
+  .paper:nth-child(4) { transform: rotate(-1.0deg); }
+  .paper:hover {
+    transform: rotate(0deg) translateY(-4px) scale(1.02);
+    box-shadow: 5px 10px 22px rgba(0,0,0,0.65);
+  }
+
+  /* the red pin */
+  .paper::before {
+    content: '';
+    position: absolute;
+    top: 8px; left: 50%;
+    width: 10px; height: 10px;
+    margin-left: -5px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #ff7a6a, #b8241a 65%);
+    box-shadow: 0 2px 3px rgba(0,0,0,0.5);
+  }
+
+  .paper .case-no {
+    font-size: 10px; letter-spacing: 3px;
+    color: #8a2018;
+    margin-bottom: 8px;
+  }
+  .paper h3 {
+    font-size: 15px;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+    font-weight: bold;
+  }
+  .paper p {
+    font-size: 11.5px;
+    line-height: 1.55;
+    color: #4a3c2c;
+  }
+  .paper .status {
+    margin-top: 12px;
+    font-size: 9px; letter-spacing: 3px;
+    color: #8a2018;
+    border: 1px solid #8a2018;
+    display: inline-block;
+    padding: 2px 7px;
+    transform: rotate(-2deg);
+    opacity: 0.8;
+  }
+
+  /* ==========================================================
+     THE CASE FILE — a single dossier, opened from the board
+     ========================================================== */
+  .file-root {
+    position: fixed; inset: 0; z-index: 70;
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.45s ease;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .file-root.show { opacity: 1; pointer-events: auto; }
+
+  .file-overlay {
+    position: absolute; inset: 0;
+    background: rgba(4,3,8,0.9);
+  }
+
+  .case-file {
+    position: relative;
+    width: min(92vw, 620px);
+    max-height: 86vh;
+    overflow-y: auto;
+    background: linear-gradient(170deg, #ece0c6 0%, #ded0ae 100%);
+    color: #2c2218;
+    padding: 38px 34px 30px;
+    box-shadow: 0 24px 70px rgba(0,0,0,0.85);
+    transform: translateY(12px);
+    transition: transform 0.45s ease;
+    font-size: 13px;
+    line-height: 1.65;
+  }
+  .file-root.show .case-file { transform: translateY(0); }
+
+  .case-file .case-no {
+    font-size: 10px; letter-spacing: 4px; color: #8a2018;
+  }
+  .case-file h2 {
+    font-size: 21px; margin: 6px 0 4px;
+    letter-spacing: 0.5px;
+  }
+  .case-file .stamp {
+    position: absolute;
+    top: 30px; right: 26px;
+    font-size: 11px; letter-spacing: 4px;
+    color: #8a2018;
+    border: 2px solid #8a2018;
+    padding: 4px 10px;
+    transform: rotate(7deg);
+    opacity: 0.75;
+  }
+  .case-file h4 {
+    margin: 20px 0 4px;
+    font-size: 11px; letter-spacing: 3px;
+    color: #6a5436;
+  }
+  .case-file p { color: #3c3022; }
+  .case-file .evidence {
+    margin-top: 24px;
+    padding-top: 14px;
+    border-top: 1px dashed #a89674;
+    font-size: 11.5px;
+    color: #6a5436;
+  }
+  .case-file .evidence a { color: #8a2018; }
+
+  .file-close, .board-close {
+    position: absolute;
+    top: 10px; right: 14px;
+    font-size: 20px;
+    color: #6a5436;
+    cursor: pointer;
+    background: none; border: none;
+    font-family: inherit;
+    line-height: 1;
+    padding: 4px;
+  }
+  .board-close { color: #d8c9a8; top: 8px; right: 10px; }
+
+
   .examine-root {
     position: fixed; inset: 0; z-index: 50;
     opacity: 0; pointer-events: none;
-    transition: opacity 0.45s ease;
+    transition: opacity 0.55s ease;
     display: flex; align-items: center; justify-content: center;
   }
   .examine-root.show { opacity: 1; }
@@ -73,16 +466,16 @@
 
   .examine-overlay {
     position: absolute; inset: 0;
-    background: rgba(4,3,8,0.85);
+    background: radial-gradient(circle at center, rgba(4,3,8,0.75) 0%, rgba(4,3,8,0.92) 100%);
   }
   .examine-frame {
     position: relative;
-    width: min(72vw, 620px);
-    height: min(46vh, 400px);
+    width: min(78vw, 560px);
+    height: min(52vh, 430px);
     border: 10px solid #2a1810;
-    box-shadow: 0 0 0 2px #4a2c1a, 0 20px 60px rgba(0,0,0,0.7);
+    box-shadow: 0 0 0 2px #4a2c1a, 0 20px 60px rgba(0,0,0,0.75);
     transform: scale(0.94);
-    transition: transform 0.45s ease;
+    transition: transform 0.55s ease;
     background: #1a100c;
     overflow: hidden;
   }
@@ -91,101 +484,308 @@
     width: 100%; height: 100%;
     background-image: url('room_centerpiece.jpg');
     background-repeat: no-repeat;
-    background-size: 460%;
-    background-position: 36% 56%;
     image-rendering: pixelated; image-rendering: crisp-edges;
+  }
+  .examine-frame::after {
+    content: ''; position: absolute; inset: 0; pointer-events: none;
+    box-shadow: inset 0 0 60px rgba(0,0,0,0.55);
   }
 </style>
 </head>
 <body>
 
+<!-- The room -->
 <div class="room-wrap" id="room">
   <div class="room-inner">
-    <img class="room-img" id="roomImg" src="room_centerpiece.jpg" alt="">
-    <div class="hotspot hotspot-book" id="bookHotspot"></div>
+    <img class="room-img" id="roomImg" src="room_centerpiece.jpg"
+         alt="A dim study at night. A man reads by a fireplace as rain falls outside the window.">
+
+    <!-- ===== LIVING EFFECTS ===== -->
+    <div class="fx fire-glow"></div>
+    <div class="fx fire-glow2"></div>
+    <div class="fx room-glow"></div>
+    <div class="fx lightning" id="lightning"></div>
+    <div class="fx lamp-glow"></div>
+    <div class="fx lamp-pool"></div>
+    <div class="fx globe-spin"></div>
+    <div class="fx foot-floor"></div>
+    <div class="fx foot-sprite"></div>
+    <!-- embers are added by JS -->
+
+    <!-- ===== HOTSPOTS ===== -->
+    <div class="hotspot" style="left:56.5%; top:47.5%; width:7%; height:15%;"
+         data-zoom="700" data-x="60.5" data-y="55.5" aria-label="Look closer at the book"></div>
+    <div class="hotspot" style="left:45.5%; top:57.5%; width:6%; height:10%;"
+         data-zoom="700" data-x="48" data-y="62" aria-label="Look closer at the table"></div>
+    <div class="hotspot" style="left:63%; top:11%; width:17%; height:20%;"
+         data-zoom="420" data-x="73" data-y="17" aria-label="Look closer at the portraits"></div>
+    <div class="hotspot" style="left:0.5%; top:30%; width:9%; height:26%;"
+         data-zoom="520" data-x="0" data-y="42" data-action="cases" aria-label="Open the pinned cases"></div>
+    <div class="hotspot" style="left:13%; top:20%; width:9.5%; height:18%;"
+         data-zoom="560" data-x="14" data-y="26" aria-label="Look closer at the framed page"></div>
   </div>
 </div>
 
-<!-- DEBUG status — tells us what's working -->
-<div class="debug-status" id="debug">
-  <b>DEBUG MODE</b><br>
-  image loaded: <span id="dImg" class="bad">no</span><br>
-  hotspot detected: <span id="dHover" class="bad">no</span><br>
-  examine triggered: <span id="dShow" class="bad">no</span><br>
-  device: <span id="dDevice">?</span>
+<!-- thunder wash -->
+<div class="room-flash" id="roomFlash"></div>
+
+<!-- Edge vignettes -->
+<div class="edge edge-left"></div>
+<div class="edge edge-right"></div>
+
+<!-- Hint -->
+<div class="hint" id="hint">DRAG TO LOOK AROUND</div>
+
+<!-- The case board (opens when the corkboard is clicked) -->
+<div class="board-root" id="boardRoot">
+  <div class="board-overlay" id="boardOverlay"></div>
+  <div class="board">
+    <button class="board-close" id="boardClose" aria-label="Close">×</button>
+    <div class="board-title">OPEN CASES</div>
+    <div class="papers">
+
+      <div class="paper" data-case="1">
+        <div class="case-no">CASE No. 001</div>
+        <h3>The Overloaded Grid</h3>
+        <p>A city's EV chargers strain under demand no one predicted. Three agents were dispatched to learn its rhythm — and reprice it.</p>
+        <div class="status">CLOSED</div>
+      </div>
+
+      <div class="paper" data-case="2">
+        <div class="case-no">CASE No. 002</div>
+        <h3>The Volatile Surface</h3>
+        <p>Beneath the NIFTY50, an invisible surface bends and shifts. The task: predict its shape before the market draws it.</p>
+        <div class="status">CLOSED</div>
+      </div>
+
+      <div class="paper" data-case="3">
+        <div class="case-no">CASE No. 003</div>
+        <h3>The Price of Rain</h3>
+        <p>50,000 rides across three cities. Somewhere between 1.5x and 1.75x, passengers quietly stop forgiving the price.</p>
+        <div class="status">CLOSED</div>
+      </div>
+
+      <div class="paper" data-case="4">
+        <div class="case-no">CASE No. 004</div>
+        <h3>The Buried Lecture</h3>
+        <p>Hours of recorded lectures; one answer buried somewhere inside. A system was built to find the exact minute it hides in.</p>
+        <div class="status">CLOSED</div>
+      </div>
+
+    </div>
+  </div>
 </div>
 
+<!-- The case file (opens from a paper on the board) -->
+<div class="file-root" id="fileRoot">
+  <div class="file-overlay" id="fileOverlay"></div>
+
+  <div class="case-file" id="caseFile1" hidden>
+    <button class="file-close" aria-label="Close">×</button>
+    <div class="case-no">CASE No. 001</div>
+    <h2>The Overloaded Grid</h2>
+    <div class="stamp">SOLVED</div>
+    <h4>THE SITUATION</h4>
+    <p>Electric vehicle charging demand swings hard across hours and stations. Flat tariffs ignore it — overloading some stations, starving others, and leaving money and grid stability on the table.</p>
+    <h4>THE INVESTIGATION</h4>
+    <p>Built an agentic AI system on the ST-EVCDP and ACN-Data datasets: a three-agent architecture where a demand-prediction agent (Random Forest), a tariff-optimization agent, and a coordination agent negotiate station pricing dynamically.</p>
+    <h4>FINDINGS</h4>
+    <p>The system learned demand rhythms and adjusted tariffs to smooth load across stations — demonstrating that multi-agent pricing beats static tariffs on utilization balance.</p>
+    <h4>INSTRUMENTS</h4>
+    <p>Python · scikit-learn (Random Forest) · multi-agent architecture · ST-EVCDP · ACN-Data</p>
+    <div class="evidence">EVIDENCE: <a href="#" target="_blank" rel="noopener">github.com/yourusername — link pending</a></div>
+  </div>
+
+  <div class="case-file" id="caseFile2" hidden>
+    <button class="file-close" aria-label="Close">×</button>
+    <div class="case-no">CASE No. 002</div>
+    <h2>The Volatile Surface</h2>
+    <div class="stamp">SOLVED</div>
+    <h4>THE SITUATION</h4>
+    <p>Options on the NIFTY50 imply a hidden surface — volatility across strikes and expiries. A Kaggle competition asked: predict its shape with minimal error.</p>
+    <h4>THE INVESTIGATION</h4>
+    <p>Developed a hybrid approach centered on PCHIP interpolation across the volatility surface, balancing smoothness against fidelity to observed market points.</p>
+    <h4>FINDINGS</h4>
+    <p>Final public leaderboard score ≈ 4.2e-5, ranking 71 — competitive performance from an interpretable, non-black-box method.</p>
+    <h4>INSTRUMENTS</h4>
+    <p>Python · pandas · scipy (PCHIP) · options/volatility fundamentals</p>
+    <div class="evidence">EVIDENCE: <a href="#" target="_blank" rel="noopener">github.com/yourusername — link pending</a></div>
+  </div>
+
+  <div class="case-file" id="caseFile3" hidden>
+    <button class="file-close" aria-label="Close">×</button>
+    <div class="case-no">CASE No. 003</div>
+    <h2>The Price of Rain</h2>
+    <div class="stamp">SOLVED</div>
+    <h4>THE SITUATION</h4>
+    <p>Rideshare surge pricing earns more per trip but quietly damages demand. The question: where exactly does the damage begin, and which city forgives least?</p>
+    <h4>THE INVESTIGATION</h4>
+    <p>Analyzed 50,000 trips across Delhi, Bangalore, and Mumbai — segmenting demand response by surge multiplier, city, and context to isolate the inflection point.</p>
+    <h4>FINDINGS</h4>
+    <p>Demand damage concentrates between 1.5x and 1.75x surge — the critical inflection band. Bangalore proved the most churn-sensitive city of the three.</p>
+    <h4>INSTRUMENTS</h4>
+    <p>Python · pandas · exploratory analysis · pricing strategy framing</p>
+    <div class="evidence">EVIDENCE: <a href="#" target="_blank" rel="noopener">github.com/yourusername — link pending</a></div>
+  </div>
+
+  <div class="case-file" id="caseFile4" hidden>
+    <button class="file-close" aria-label="Close">×</button>
+    <div class="case-no">CASE No. 004</div>
+    <h2>The Buried Lecture</h2>
+    <div class="stamp">SOLVED</div>
+    <h4>THE SITUATION</h4>
+    <p>Recorded lectures hold answers nobody can find — hours of video, no index, no way to ask. The task: make video lectures answer questions, with receipts.</p>
+    <h4>THE INVESTIGATION</h4>
+    <p>Built an end-to-end RAG pipeline: FFmpeg audio extraction → Whisper transcription → BGE-M3 embeddings via Ollama → Llama 3.2 generating answers with clickable timestamps, deployed on Streamlit.</p>
+    <h4>FINDINGS</h4>
+    <p>Ask a question, get the answer and the exact minute of the lecture it came from. Search time across hours of video drops to seconds.</p>
+    <h4>INSTRUMENTS</h4>
+    <p>Python · FFmpeg · Whisper · Ollama (BGE-M3) · Llama 3.2 · Streamlit</p>
+    <div class="evidence">EVIDENCE: <a href="#" target="_blank" rel="noopener">github.com/yourusername — link pending</a></div>
+  </div>
+</div>
+
+<!-- Examine view -->
 <div class="examine-root" id="examineRoot">
   <div class="examine-overlay"></div>
-  <div class="examine-frame"><div class="examine-img"></div></div>
+  <div class="examine-frame"><div class="examine-img" id="examineImg"></div></div>
 </div>
 
 <script>
 (function() {
-  const room    = document.getElementById('room');
-  const img     = document.getElementById('roomImg');
-  const hotspot = document.getElementById('bookHotspot');
-  const examine = document.getElementById('examineRoot');
+  const room       = document.getElementById('room');
+  const img        = document.getElementById('roomImg');
+  const hint       = document.getElementById('hint');
+  const examine    = document.getElementById('examineRoot');
+  const examineImg = document.getElementById('examineImg');
+  const hotspots   = document.querySelectorAll('.hotspot');
+  const lightning  = document.getElementById('lightning');
+  const roomFlash  = document.getElementById('roomFlash');
+  const roomInner  = document.querySelector('.room-inner');
 
-  // debug indicators
-  const dImg    = document.getElementById('dImg');
-  const dHover  = document.getElementById('dHover');
-  const dShow   = document.getElementById('dShow');
-  const dDevice = document.getElementById('dDevice');
-
+  /* ----- center the opening view on the man ----- */
   function centerView() {
     const scrollable = room.scrollWidth - room.clientWidth;
     if (scrollable > 0) room.scrollLeft = scrollable / 2;
   }
-
-  function markImgLoaded() {
-    dImg.textContent = 'yes (' + img.naturalWidth + 'x' + img.naturalHeight + ')';
-    dImg.className = 'ok';
-    centerView();
-  }
-  if (img.complete && img.naturalWidth > 0) markImgLoaded();
-  else {
-    img.addEventListener('load', markImgLoaded);
-    img.addEventListener('error', function() {
-      dImg.textContent = 'FAILED TO LOAD';
-      dImg.className = 'bad';
-    });
-  }
+  if (img.complete && img.naturalWidth > 0) centerView();
+  else img.addEventListener('load', centerView);
   window.addEventListener('resize', centerView);
 
+  /* ----- hint fade ----- */
+  room.addEventListener('scroll', function() { hint.classList.add('fade'); }, { once: true });
+  setTimeout(function() { hint.classList.add('fade'); }, 7000);
+
+  /* ----- keyboard ----- */
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowRight') { room.scrollBy({ left: 130, behavior: 'smooth' }); hint.classList.add('fade'); e.preventDefault(); }
+    if (e.key === 'ArrowLeft')  { room.scrollBy({ left: -130, behavior: 'smooth' }); hint.classList.add('fade'); e.preventDefault(); }
+    if (e.key === 'Escape') {
+      const fr = document.getElementById('fileRoot');
+      const br = document.getElementById('boardRoot');
+      if (fr && fr.classList.contains('show')) { fr.classList.remove('show'); }
+      else if (br && br.classList.contains('show')) { br.classList.remove('show'); }
+      else { examine.classList.remove('show'); }
+    }
+  });
+
+  /* ----- EMBERS ----- */
+  const EMBER_COUNT = 7;
+  for (let i = 0; i < EMBER_COUNT; i++) {
+    const e = document.createElement('div');
+    e.className = 'ember';
+    const x = 67 + Math.random() * 10;
+    const y = 66 + Math.random() * 8;
+    e.style.left = x + '%';
+    e.style.top  = y + '%';
+    e.style.animationDuration = (2.4 + Math.random() * 2.2) + 's';
+    e.style.animationDelay    = (Math.random() * 3) + 's';
+    roomInner.appendChild(e);
+  }
+
+  /* ----- LIGHTNING + THUNDER -----
+     A strike roughly every 5 seconds (4.5–6.5s, randomized so it
+     never feels mechanical). The window swells bright once, the room
+     catches a faint wash. No flicker — single smooth rise and fall. */
+  function scheduleLightning() {
+    const wait = 4500 + Math.random() * 2000;
+    setTimeout(function() {
+      lightning.classList.remove('strike');
+      roomFlash.classList.remove('swell');
+      void lightning.offsetWidth;
+      lightning.classList.add('strike');
+      roomFlash.classList.add('swell');
+      scheduleLightning();
+    }, wait);
+  }
+  scheduleLightning();
+
+  /* ----- THE CASE BOARD & CASE FILES ----- */
+  const boardRoot    = document.getElementById('boardRoot');
+  const boardOverlay = document.getElementById('boardOverlay');
+  const boardClose   = document.getElementById('boardClose');
+  const fileRoot     = document.getElementById('fileRoot');
+  const fileOverlay  = document.getElementById('fileOverlay');
+
+  function openBoard()  { hideExamine(); boardRoot.classList.add('show'); }
+  function closeBoard() { boardRoot.classList.remove('show'); }
+  function openFile(n) {
+    document.querySelectorAll('.case-file').forEach(function(f) { f.hidden = true; });
+    const f = document.getElementById('caseFile' + n);
+    if (f) f.hidden = false;
+    fileRoot.classList.add('show');
+  }
+  function closeFile() { fileRoot.classList.remove('show'); }
+
+  boardOverlay.addEventListener('click', closeBoard);
+  boardClose.addEventListener('click', closeBoard);
+  fileOverlay.addEventListener('click', closeFile);
+  document.querySelectorAll('.file-close').forEach(function(btn) {
+    btn.addEventListener('click', closeFile);
+  });
+  document.querySelectorAll('.paper').forEach(function(p) {
+    p.addEventListener('click', function() { openFile(p.getAttribute('data-case')); });
+  });
+
+  /* ----- SHARED EXAMINE SYSTEM ----- */
   const isTouch = window.matchMedia('(hover: none)').matches;
-  dDevice.textContent = isTouch ? 'touch' : 'hover (mouse)';
   if (isTouch) document.body.classList.add('is-touch');
 
-  function showExamine() {
+  function aimExamine(hs) {
+    const zoom = hs.getAttribute('data-zoom') || '500';
+    const x    = hs.getAttribute('data-x')    || '50';
+    const y    = hs.getAttribute('data-y')    || '50';
+    examineImg.style.backgroundSize     = zoom + '%';
+    examineImg.style.backgroundPosition = x + '% ' + y + '%';
+  }
+  function showExamine(hs) {
+    aimExamine(hs);
     examine.classList.add('show');
-    dShow.textContent = 'YES';
-    dShow.className = 'ok';
+    hint.classList.add('fade');
   }
   function hideExamine() { examine.classList.remove('show'); }
 
-  hotspot.addEventListener('mouseenter', function() {
-    dHover.textContent = 'YES (mouseenter)';
-    dHover.className = 'ok';
-    if (!isTouch) showExamine();
-  });
-  hotspot.addEventListener('mouseleave', function() {
-    if (!isTouch) hideExamine();
-  });
-  hotspot.addEventListener('click', function(e) {
-    e.stopPropagation();
-    dHover.textContent = 'YES (click)';
-    dHover.className = 'ok';
-    examine.classList.toggle('show');
-    if (examine.classList.contains('show')) {
-      dShow.textContent = 'YES';
-      dShow.className = 'ok';
+  hotspots.forEach(function(hs) {
+    const isCases = hs.getAttribute('data-action') === 'cases';
+    if (isTouch) {
+      hs.addEventListener('click', function(e) {
+        e.stopPropagation();
+        if (isCases) { openBoard(); return; }
+        if (examine.classList.contains('show')) hideExamine();
+        else showExamine(hs);
+      });
+    } else {
+      hs.addEventListener('mouseenter', function() { showExamine(hs); });
+      hs.addEventListener('mouseleave', hideExamine);
+      if (isCases) {
+        hs.addEventListener('click', function(e) {
+          e.stopPropagation();
+          openBoard();
+        });
+      }
     }
   });
-  examine.addEventListener('click', hideExamine);
-  document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') hideExamine();
-  });
+  if (isTouch) examine.addEventListener('click', hideExamine);
 })();
 </script>
 
