@@ -1,0 +1,295 @@
+/* ==========================================================
+   room.css — the shared room rendering layer.
+   Used by index.html (full life) and by cases.html + about.html
+   (dimmed to "lights out" state via the .room-dim class on the
+   .viewport). Every animation, position, and effect lives here.
+   ========================================================== */
+.viewport {
+  position: fixed; inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  z-index: 0;
+  /* The room is an atmospheric backdrop, not a document. Disable
+     selection on it so Cmd-A / drag-highlight doesn't reveal the
+     individual sprite layers as crisp un-dimmed rectangles. */
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+#stage {
+  position: relative;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.room-img {
+  width: 100%; height: 100%;
+  display: block;
+  image-rendering: pixelated; image-rendering: crisp-edges;
+  user-select: none; -webkit-user-drag: none;
+}
+
+/* ===== LIVING EFFECTS — positioned in % of the stage ===== */
+.fx { position: absolute; pointer-events: none; }
+
+/* Fire glows: layered flicker at different rhythms */
+.fire-glow {
+  left: 63%; top: 46%; width: 18%; height: 38%;
+  background: radial-gradient(ellipse at center,
+    rgba(255,150,50,0.30) 0%, rgba(255,110,30,0.15) 45%, transparent 72%);
+  mix-blend-mode: screen;
+  animation: flickA 2.1s ease-in-out infinite;
+}
+.fire-glow2 {
+  left: 64.5%; top: 49%; width: 15%; height: 32%;
+  background: radial-gradient(ellipse at center,
+    rgba(255,190,80,0.26) 0%, rgba(255,140,40,0.10) 50%, transparent 75%);
+  mix-blend-mode: screen;
+  animation: flickB 1.3s ease-in-out infinite;
+}
+@keyframes flickA {
+  0%, 100% { opacity: 0.85; transform: scale(1); }
+  25%      { opacity: 1.0;  transform: scale(1.02); }
+  50%      { opacity: 0.78; transform: scale(0.99); }
+  75%      { opacity: 0.95; transform: scale(1.01); }
+}
+@keyframes flickB {
+  0%, 100% { opacity: 0.7;  transform: scale(1); }
+  33%      { opacity: 1.0;  transform: scale(1.04); }
+  66%      { opacity: 0.62; transform: scale(0.98); }
+}
+
+/* Firelight breathing across the man and the floor */
+.room-glow {
+  left: 40%; top: 30%; width: 42%; height: 65%;
+  background: radial-gradient(ellipse at 70% 60%,
+    rgba(255,140,50,0.09) 0%, transparent 70%);
+  mix-blend-mode: screen;
+  animation: breatheGlow 3.4s ease-in-out infinite;
+}
+@keyframes breatheGlow {
+  0%, 100% { opacity: 0.75; } 50% { opacity: 1.0; }
+}
+
+/* Embers — created by JS */
+.ember {
+  position: absolute;
+  width: 3px; height: 3px;
+  background: #ffb050; border-radius: 50%;
+  opacity: 0;
+  box-shadow: 0 0 4px rgba(255,150,60,0.8);
+  animation: emberRise linear infinite;
+}
+@keyframes emberRise {
+  0%   { opacity: 0;   transform: translateY(0) translateX(0); }
+  12%  { opacity: 0.9; }
+  60%  { opacity: 0.5; }
+  100% { opacity: 0;   transform: translateY(-90px) translateX(8px); }
+}
+
+/* The rocking chair — sprite over an under-patch */
+.man-under, .man-sprite {
+  left: 48.106%; top: 36.905%;
+  width: 21.622%; height: 53.943%;
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+  image-rendering: pixelated; image-rendering: crisp-edges;
+}
+.man-under  { background-image: url('man_under.png'); }
+.man-sprite {
+  background-image: url('man_sprite.png');
+  transform-origin: 40.3% 98.8%;
+  animation: manRock 2.6s ease-in-out infinite alternate;
+}
+@keyframes manRock {
+  from { transform: rotate(0.45deg); }
+  to   { transform: rotate(-0.45deg); }
+}
+
+/* Oil lamp: tight shimmer + breathing desk pool */
+.lamp-glow {
+  left: 10.5%; top: 40%; width: 5.5%; height: 14%;
+  background: radial-gradient(ellipse at center,
+    rgba(255,200,110,0.32) 0%, rgba(255,160,60,0.14) 50%, transparent 75%);
+  mix-blend-mode: screen;
+  animation: lampShimmer 0.7s ease-in-out infinite;
+}
+.lamp-pool {
+  left: 8%; top: 51%; width: 10%; height: 11%;
+  background: radial-gradient(ellipse at center,
+    rgba(255,180,90,0.10) 0%, transparent 70%);
+  mix-blend-mode: screen;
+  animation: lampPool 2.8s ease-in-out infinite;
+}
+@keyframes lampShimmer {
+  0%, 100% { opacity: 0.8;  transform: scale(1); }
+  30%      { opacity: 1.0;  transform: scale(1.03); }
+  55%      { opacity: 0.72; transform: scale(0.985); }
+  80%      { opacity: 0.92; transform: scale(1.015); }
+}
+@keyframes lampPool {
+  0%, 100% { opacity: 0.7; } 50% { opacity: 1.0; }
+}
+
+/* Globe: static (no rotation) */
+.globe-spin {
+  display: none;
+}
+
+/* The clean-glass patch (no painted rain) */
+.window-clean {
+  left: 27.53%; top: 18.75%;
+  width: 10.259%; height: 43.527%;
+  background-image: url('window_clean.png');
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+  image-rendering: pixelated; image-rendering: crisp-edges;
+}
+
+/* Lightning over the window: one smooth swell, no strobe */
+.lightning {
+  left: 27.53%; top: 18.75%; width: 10.259%; height: 43.527%;
+  mix-blend-mode: screen;
+  opacity: 0;
+}
+.lightning.strike { animation: lightningSwell 1.25s ease-in-out; }
+@keyframes lightningSwell {
+  0%   { opacity: 0; background: radial-gradient(ellipse at 50% 35%, rgba(215,228,255,0.45) 0%, rgba(190,205,245,0.18) 60%, transparent 100%); }
+  35%  { opacity: 1; }
+  100% { opacity: 0; background: radial-gradient(ellipse at 50% 35%, rgba(215,228,255,0.45) 0%, rgba(190,205,245,0.18) 60%, transparent 100%); }
+}
+.room-flash {
+  position: fixed; inset: 0;
+  background: rgba(190,205,240,0);
+  pointer-events: none; z-index: 7;
+}
+.room-flash.swell { animation: thunderSwell 1.6s ease-in-out; }
+@keyframes thunderSwell {
+  0%   { background: rgba(190,205,240,0); }
+  35%  { background: rgba(190,205,240,0.045); }
+  100% { background: rgba(190,205,240,0); }
+}
+
+/* Foot tap: floor patch beneath + shoe sprite pivoting at the heel */
+.foot-floor, .foot-sprite {
+  left: 62.34%; top: 82.44%;
+  width: 4.735%; height: 7.961%;
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+  image-rendering: pixelated; image-rendering: crisp-edges;
+}
+.foot-floor  { background-image: url('shoe_floor.png'); }
+.foot-sprite {
+  background-image: url('shoe_sprite.png');
+  transform-origin: 10.7% 84.1%;
+  animation: footTapIdle 3.6s ease-in-out infinite;
+}
+body.music-on .foot-sprite {
+  animation: footTapBeat var(--beat, 1.33s) linear infinite;
+}
+@keyframes footTapIdle {
+  0%, 84%  { transform: rotate(0deg); }
+  87.5%    { transform: rotate(-4.5deg); }
+  91%      { transform: rotate(0deg); }
+  93.5%    { transform: rotate(-2.2deg); }
+  96%      { transform: rotate(0deg); }
+  100%     { transform: rotate(0deg); }
+}
+@keyframes footTapBeat {
+  0%, 55%  { transform: rotate(0deg); }
+  75%      { transform: rotate(-4.5deg); }
+  95%      { transform: rotate(0deg); }
+  100%     { transform: rotate(0deg); }
+}
+
+/* Tea steam: erase the painted squiggle, three live wisps rise */
+.steam-patch {
+  left: 47.47%; top: 54.46%;
+  width: 4.009%; height: 9.003%;
+  background-image: url('steam_patch.png');
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+  image-rendering: pixelated; image-rendering: crisp-edges;
+}
+.steam {
+  position: absolute;
+  left: 49.5%; top: 60.8%;
+  width: 7px; height: 12px;
+  border-radius: 50%;
+  background: rgba(225,215,205,0.45);
+  filter: blur(3px);
+  opacity: 0;
+  pointer-events: none;
+  animation: steamRise ease-out infinite;
+}
+.steam.s1 { animation-duration: 3.2s; animation-delay: 0s;   margin-left: -3px; }
+.steam.s2 { animation-duration: 4.1s; animation-delay: 1.3s; margin-left: 2px; }
+.steam.s3 { animation-duration: 3.6s; animation-delay: 2.4s; margin-left: 0px; }
+@keyframes steamRise {
+  0%   { transform: translate(0, 0) scale(0.6);       opacity: 0; }
+  18%  { opacity: 0.45; }
+  50%  { transform: translate(3px, -16px) scale(1.0); opacity: 0.3; }
+  100% { transform: translate(-3px, -34px) scale(1.6); opacity: 0; }
+}
+
+/* Rain outside the window: each glass pane has its own clipping
+   box, so streaks can never spill onto the wooden muntins between
+   panes or escape onto the outer frame. The 12 pane boxes are
+   created by JS using measured pane coordinates. */
+.drop-box {
+  position: absolute;
+  overflow: hidden;
+  pointer-events: none;
+}
+.droplet {
+  position: absolute;
+  width: 1.5px; height: 13px;
+  background: linear-gradient(to bottom,
+    rgba(205,222,248,0) 0%,
+    rgba(205,222,248,0.42) 100%);
+  opacity: 0;
+  animation-name: rainFallPane;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+@keyframes rainFallPane {
+  0%   { transform: translate(0, -14px) rotate(-20deg);      opacity: 0; }
+  6%   { opacity: 0.5; }
+  92%  { opacity: 0.5; }
+  100% { transform: translate(3.9vh, 10.6vh) rotate(-20deg); opacity: 0; }
+}
+
+/* ==========================================================
+   LIGHTS OUT (cases/about) — the room is here, but dimmed
+   to near-black. Only the lightning and the storm beyond the
+   window remain visible, washing the room in pale flashes.
+   ========================================================== */
+.viewport.room-dim {
+  filter: brightness(0.18) saturate(0.55);
+}
+.viewport.room-dim .fire-glow,
+.viewport.room-dim .fire-glow2,
+.viewport.room-dim .room-glow,
+.viewport.room-dim .ember,
+.viewport.room-dim .lamp-glow,
+.viewport.room-dim .lamp-pool,
+.viewport.room-dim .steam,
+.viewport.room-dim .globe-spin {
+  display: none;
+}
+/* Pull the lightning UP, above the brightness filter, so the
+   strikes still feel bright against the dimmed room. */
+.viewport.room-dim .lightning,
+.viewport.room-dim .drop-box {
+  filter: brightness(2.4);
+}
+
+/* A dark veil that sits over the room (under the page content)
+   so the content is readable. Inserted by every static page. */
+.room-veil {
+  position: fixed; inset: 0;
+  background: rgba(4, 3, 8, 0.55);
+  z-index: 1;
+  pointer-events: none;
+}

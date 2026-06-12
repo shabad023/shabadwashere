@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <title>cases — shabadwashere</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="room.css">
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box;
       cursor: url('magnifier.png') 12 12, auto; }
@@ -13,10 +14,20 @@
     font-family: 'Courier New', monospace;
     color: #b9a890;
   }
-  body { padding: 70px 16px 90px; display: flex; justify-content: center; }
+  /* The page sits ABOVE the dimmed room.
+     Padding pulled inside a positioned wrapper so the room layer
+     can be position:fixed without interfering. */
+  .page {
+    position: relative;
+    z-index: 2;
+    min-height: 100vh;
+    padding: 60px 16px 90px;
+    display: flex;
+    justify-content: center;
+  }
 
-  /* ---- NAV (shared across pages) ---- */
-    .nav {
+  /* ---- NAV ---- */
+  .nav {
     position: fixed;
     top: 14px; left: 50%;
     transform: translateX(-50%);
@@ -31,11 +42,21 @@
     text-shadow: 0 0 8px #000;
     white-space: nowrap;
   }
+  .sound-nav {
+    position: fixed;
+    top: 14px; right: 16px;
+    z-index: 20;
+  }
+  .sound-nav .nav-link {
+    appearance: none;
+    -webkit-appearance: none;
+    cursor: url('magnifier.png') 12 12, auto;
+  }
   .nav-link {
     font-family: 'Courier New', monospace;
     font-size: 11px; letter-spacing: 3px;
     color: #b9a890;
-    background: rgba(10,7,5,0.72);
+    background: rgba(10, 7, 5, 0.72);
     border: 1px solid #4a3526;
     padding: 8px 14px;
     text-decoration: none;
@@ -47,21 +68,26 @@
 
   /* ---- THE BOARD ---- */
   .board {
+    position: relative;
     width: min(94vw, 780px);
+    height: fit-content;
     background:
       radial-gradient(circle at 20% 30%, rgba(0,0,0,0.12) 0%, transparent 50%),
       radial-gradient(circle at 75% 70%, rgba(0,0,0,0.10) 0%, transparent 45%),
       #7a5538;
     border: 14px solid #3a2414;
-    box-shadow: 0 0 0 2px #241408, 0 24px 70px rgba(0,0,0,0.8);
-    padding: 32px 28px 30px;
+    box-shadow: 0 0 0 2px #241408, 0 24px 70px rgba(0,0,0,0.85);
+    padding: 30px 28px 26px;
   }
   .board-title {
     font-size: 11px; letter-spacing: 5px;
     color: #d8c9a8; opacity: 0.55;
     text-align: center; margin-bottom: 8px;
   }
-  .creds { text-align: center; margin-bottom: 26px; }
+  .creds {
+    text-align: center;
+    margin-bottom: 8px;
+  }
   .creds a {
     font-size: 10px; letter-spacing: 3px;
     color: #e8dcc0; text-decoration: none;
@@ -71,6 +97,65 @@
     display: inline-block;
   }
   .creds a:hover { border-color: #c8a878; color: #fff; }
+
+  /* Section divider between credentials and the cases below.
+     A faint line + the section label clarifies that what follows
+     is the work, separate from the contact strip above. */
+  .board-divider {
+    margin: 26px auto 18px;
+    text-align: center;
+    color: #d8c9a8;
+    font-size: 11px;
+    letter-spacing: 5px;
+    opacity: 0.55;
+    position: relative;
+  }
+  .board-divider::before,
+  .board-divider::after {
+    content: '';
+    display: inline-block;
+    width: 56px;
+    height: 1px;
+    background: rgba(216, 201, 168, 0.35);
+    vertical-align: middle;
+    margin: 0 14px;
+  }
+
+  /* CURRENT INVESTIGATION card — smaller, off-center, looks like
+     a fresh note pinned to the cork. The yellow pin and slight
+     skew distinguish it from the case papers below. */
+  .current-card {
+    position: relative;
+    max-width: 460px;
+    margin: 0 auto 30px;
+    padding: 18px 22px 16px;
+    background: linear-gradient(155deg, #f0e8d0 0%, #e3d6b4 100%);
+    color: #2c2218;
+    box-shadow: 4px 6px 16px rgba(0,0,0,0.5);
+    transform: rotate(-0.6deg);
+    font-size: 12px;
+    line-height: 1.55;
+  }
+  .current-card::before {
+    content: '';
+    position: absolute;
+    top: -6px; left: 50%;
+    width: 11px; height: 11px;
+    margin-left: -5.5px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #ffd56a, #b88a18 70%);
+    box-shadow: 0 2px 3px rgba(0,0,0,0.5);
+  }
+  .current-label {
+    font-size: 10px; letter-spacing: 4px;
+    color: #8a6a18; margin-bottom: 2px;
+  }
+  .current-meta {
+    font-size: 9px; letter-spacing: 2px;
+    color: #8a7036; opacity: 0.7;
+    margin-bottom: 8px;
+  }
+  .current-card p { color: #3c3022; }
 
   .papers {
     display: grid;
@@ -95,24 +180,32 @@
   }
   .paper::before {
     content: '';
-    position: absolute; top: 8px; left: 50%;
-    width: 10px; height: 10px; margin-left: -5px;
+    position: absolute;
+    top: 8px; left: 50%;
+    width: 10px; height: 10px;
+    margin-left: -5px;
     border-radius: 50%;
     background: radial-gradient(circle at 35% 30%, #ff7a6a, #b8241a 65%);
     box-shadow: 0 2px 3px rgba(0,0,0,0.5);
   }
-  .paper .case-no { font-size: 10px; letter-spacing: 3px; color: #8a2018; margin-bottom: 8px; }
+  .paper .case-no {
+    font-size: 10px; letter-spacing: 3px;
+    color: #8a2018; margin-bottom: 8px;
+  }
   .paper h3 { font-size: 15px; margin-bottom: 8px; }
   .paper p  { font-size: 11.5px; line-height: 1.55; color: #4a3c2c; }
   .paper .status {
     margin-top: 12px;
     font-size: 9px; letter-spacing: 3px;
-    color: #8a2018; border: 1px solid #8a2018;
-    display: inline-block; padding: 2px 7px;
-    transform: rotate(-2deg); opacity: 0.8;
+    color: #8a2018;
+    border: 1px solid #8a2018;
+    display: inline-block;
+    padding: 2px 7px;
+    transform: rotate(-2deg);
+    opacity: 0.8;
   }
 
-  /* ---- THE OPEN FILE ---- */
+  /* ---- CASE FILE OVERLAY ---- */
   .file-root {
     position: fixed; inset: 0; z-index: 70;
     opacity: 0; pointer-events: none;
@@ -120,81 +213,132 @@
     display: flex; align-items: center; justify-content: center;
   }
   .file-root.show { opacity: 1; pointer-events: auto; }
-  .file-overlay { position: absolute; inset: 0; background: rgba(4,3,8,0.9); }
+  .file-overlay { position: absolute; inset: 0; background: rgba(4,3,8,0.92); }
 
   .case-file {
     position: relative;
     width: min(92vw, 620px);
-    max-height: 86vh; overflow-y: auto;
+    max-height: 86vh;
+    overflow-y: auto;
     background: linear-gradient(170deg, #ece0c6 0%, #ded0ae 100%);
     color: #2c2218;
     padding: 38px 34px 30px;
     box-shadow: 0 24px 70px rgba(0,0,0,0.85);
     transform: translateY(12px);
     transition: transform 0.45s ease;
-    font-size: 13px; line-height: 1.65;
+    font-size: 13px;
+    line-height: 1.65;
   }
   .file-root.show .case-file { transform: translateY(0); }
   .case-file .case-no { font-size: 10px; letter-spacing: 4px; color: #8a2018; }
   .case-file h2 { font-size: 21px; margin: 6px 0 4px; }
   .case-file .stamp {
-    position: absolute; top: 30px; right: 26px;
+    position: absolute;
+    top: 30px; right: 26px;
     font-size: 11px; letter-spacing: 4px;
-    color: #8a2018; border: 2px solid #8a2018;
-    padding: 4px 10px; transform: rotate(7deg); opacity: 0.75;
+    color: #8a2018;
+    border: 2px solid #8a2018;
+    padding: 4px 10px;
+    transform: rotate(7deg);
+    opacity: 0.75;
   }
-  .case-file h4 { margin: 20px 0 4px; font-size: 11px; letter-spacing: 3px; color: #6a5436; }
+  .case-file h4 {
+    margin: 20px 0 4px;
+    font-size: 11px; letter-spacing: 3px;
+    color: #6a5436;
+  }
   .case-file p { color: #3c3022; }
   .case-file .evidence {
-    margin-top: 24px; padding-top: 14px;
+    margin-top: 24px;
+    padding-top: 14px;
     border-top: 1px dashed #a89674;
-    font-size: 11.5px; color: #6a5436;
+    font-size: 11.5px;
+    color: #6a5436;
   }
   .case-file .evidence a { color: #8a2018; }
   .file-close {
-    position: absolute; top: 10px; right: 14px;
-    font-size: 20px; color: #6a5436;
+    position: absolute;
+    top: 10px; right: 14px;
+    font-size: 20px;
+    color: #6a5436;
     background: none; border: none;
-    font-family: inherit; line-height: 1; padding: 4px;
+    font-family: inherit;
+    line-height: 1;
+    padding: 4px;
+    cursor: url('magnifier.png') 12 12, auto;
   }
 </style>
 </head>
 <body>
 
-<div class="board">
-  <div class="board-title">OPEN CASES</div>
-  <div class="creds">
-    <a href="resume.pdf" target="_blank" rel="noopener">RESUME</a>
-    <a href="https://github.com/shabad023" target="_blank" rel="noopener">GITHUB</a>
-  </div>
-  <div class="papers">
-    <div class="paper" data-case="1">
-      <div class="case-no">CASE No. 001</div>
-      <h3>The Overloaded Grid</h3>
-      <p>A city's EV chargers strain under demand no one predicted. Three agents were dispatched to learn its rhythm — and reprice it.</p>
-      <div class="status">CLOSED</div>
+<!-- Dimmed room behind everything -->
+<div class="viewport room-dim" id="room-root"></div>
+<div class="room-veil"></div>
+
+<!-- Top-right SOUND -->
+<div class="sound-nav">
+  <button id="navSound" class="nav-link">SOUND: OFF</button>
+</div>
+
+<!-- Top-center nav -->
+<div class="nav">
+  <span class="wordmark">SHABADWASHERE</span>
+  <a class="nav-link" href="index.html">THE STUDY</a>
+  <a class="nav-link current" href="cases.html">CASES</a>
+  <a class="nav-link" href="about.html">ABOUT</a>
+</div>
+
+<!-- Page content -->
+<div class="page">
+  <div class="board">
+    <div class="creds">
+      <a href="resume.pdf" target="_blank" rel="noopener">RESUME</a>
+      <a href="https://github.com/shabad023" target="_blank" rel="noopener">GITHUB</a>
+      <a href="mailto:youremail@example.com">CONTACT</a>
     </div>
-    <div class="paper" data-case="2">
-      <div class="case-no">CASE No. 002</div>
-      <h3>The Volatile Surface</h3>
-      <p>Beneath the NIFTY50, an invisible surface bends and shifts. The task: predict its shape before the market draws it.</p>
-      <div class="status">CLOSED</div>
+
+    <div class="board-divider">OPEN CASES</div>
+
+    <!-- CURRENT INVESTIGATION
+         Update this card every week. Keep it to one or two sentences,
+         present tense, written in the same case-file voice as the
+         other papers. It tells visitors you are actively working. -->
+    <div class="current-card">
+      <div class="current-label">CURRENT INVESTIGATION</div>
+      <div class="current-meta">UPDATED · JUNE 11, 2026</div>
+      <p>Studying Netflix's recommendation system end-to-end — modeling content embeddings, A/B testing approaches to cold-start recommendations, and writing up findings as a fifth case file.</p>
     </div>
-    <div class="paper" data-case="3">
-      <div class="case-no">CASE No. 003</div>
-      <h3>The Price of Rain</h3>
-      <p>50,000 rides across three cities. Somewhere between 1.5x and 1.75x, passengers quietly stop forgiving the price.</p>
-      <div class="status">CLOSED</div>
-    </div>
-    <div class="paper" data-case="4">
-      <div class="case-no">CASE No. 004</div>
-      <h3>The Buried Lecture</h3>
-      <p>Hours of recorded lectures; one answer buried somewhere inside. A system was built to find the exact minute it hides in.</p>
-      <div class="status">CLOSED</div>
+
+    <div class="papers">
+      <div class="paper" data-case="1">
+        <div class="case-no">CASE No. 001</div>
+        <h3>The Overloaded Grid</h3>
+        <p>A city's EV chargers strain under demand no one predicted. Three agents were dispatched to learn its rhythm — and reprice it.</p>
+        <div class="status">CLOSED</div>
+      </div>
+      <div class="paper" data-case="2">
+        <div class="case-no">CASE No. 002</div>
+        <h3>The Volatile Surface</h3>
+        <p>Beneath the NIFTY50, an invisible surface bends and shifts. The task: predict its shape before the market draws it.</p>
+        <div class="status">CLOSED</div>
+      </div>
+      <div class="paper" data-case="3">
+        <div class="case-no">CASE No. 003</div>
+        <h3>The Price of Rain</h3>
+        <p>50,000 rides across three cities. Somewhere between 1.5x and 1.75x, passengers quietly stop forgiving the price.</p>
+        <div class="status">CLOSED</div>
+      </div>
+      <div class="paper" data-case="4">
+        <div class="case-no">CASE No. 004</div>
+        <h3>The Buried Lecture</h3>
+        <p>Hours of recorded lectures; one answer buried somewhere inside. A system was built to find the exact minute it hides in.</p>
+        <div class="status">CLOSED</div>
+      </div>
     </div>
   </div>
 </div>
 
+<!-- Case files -->
 <div class="file-root" id="fileRoot">
   <div class="file-overlay" id="fileOverlay"></div>
 
@@ -263,13 +407,14 @@
   </div>
 </div>
 
-<div class="nav">
-  <span class="wordmark">SHABADWASHERE</span>
-  <a class="nav-link" href="index.html">THE STUDY</a>
-  <a class="nav-link current" href="cases.html">CASES</a>
-  <a class="nav-link" href="about.html">ABOUT</a>
-</div>
+<!-- Audio (shared) -->
+<audio id="bgm" src="soundtrack.mp3" loop preload="none"></audio>
+<audio id="fireSnd" src="fire.mp3" loop preload="none"></audio>
+<audio id="thunderSnd" src="thunder.mp3" loop preload="none"></audio>
+<audio id="lightningSnd" src="lightning.mp3" preload="auto"></audio>
 
+<script src="room.js"></script>
+<script src="sound.js"></script>
 <script>
 (function() {
   const fileRoot    = document.getElementById('fileRoot');

@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <title>about — shabadwashere</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="room.css">
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box;
       cursor: url('magnifier.png') 12 12, auto; }
@@ -13,10 +14,17 @@
     font-family: 'Courier New', monospace;
     color: #b9a890;
   }
-  body { padding: 60px 16px 90px; display: flex; justify-content: center; }
+  .page {
+    position: relative;
+    z-index: 2;
+    min-height: 100vh;
+    padding: 60px 16px 90px;
+    display: flex;
+    justify-content: center;
+  }
 
   /* ---- NAV ---- */
-    .nav {
+  .nav {
     position: fixed;
     top: 14px; left: 50%;
     transform: translateX(-50%);
@@ -31,11 +39,21 @@
     text-shadow: 0 0 8px #000;
     white-space: nowrap;
   }
+  .sound-nav {
+    position: fixed;
+    top: 14px; right: 16px;
+    z-index: 20;
+  }
+  .sound-nav .nav-link {
+    appearance: none;
+    -webkit-appearance: none;
+    cursor: url('magnifier.png') 12 12, auto;
+  }
   .nav-link {
     font-family: 'Courier New', monospace;
     font-size: 11px; letter-spacing: 3px;
     color: #b9a890;
-    background: rgba(10,7,5,0.72);
+    background: rgba(10, 7, 5, 0.72);
     border: 1px solid #4a3526;
     padding: 8px 14px;
     text-decoration: none;
@@ -49,6 +67,7 @@
   .dossier {
     position: relative;
     width: min(94vw, 640px);
+    height: fit-content;
     background: linear-gradient(170deg, #ece0c6 0%, #ded0ae 100%);
     color: #2c2218;
     padding: 44px 38px 34px;
@@ -81,42 +100,64 @@
 </head>
 <body>
 
-<div class="dossier">
-  <div class="file-no">FILE No. 000 — PERSON OF INTEREST</div>
-  <h1>Shabadpreet Singh</h1>
-  <div class="alias">known to this site as: the one who was here</div>
-  <div class="stamp">ACTIVE</div>
+<!-- Dimmed room behind everything -->
+<div class="viewport room-dim" id="room-root"></div>
+<div class="room-veil"></div>
 
-  <h4>BACKGROUND</h4>
-  <p>An architecture student at IIT Roorkee — fourth year of a five-year Bachelor of Architecture — who discovered, somewhere between studio deadlines and structural drawings, that the thing he actually loves about buildings is the thing he loves about everything: figuring out why they stand, why they fail, and what the people inside them need.</p>
-  <p>So he started investigating other structures. Markets. Pricing systems. Demand curves. Machine learning pipelines. The cases pinned in the next room are the record of that investigation.</p>
-
-  <h4>CURRENT OCCUPATION</h4>
-  <p>Placement manager at his college — the person responsible for connecting hundreds of students with the companies that hire them. Which means he reads job markets, talks to recruiters, and understands what companies actually want, from both sides of the table.</p>
-
-  <h4>SEEKING</h4>
-  <p>A six-month internship beginning January 2027, in product management, data analytics, or data science. He brings an architect's structural thinking, an analyst's patience with data, and a working portfolio of shipped investigations.</p>
-
-  <h4>INSTRUMENTS</h4>
-  <p>Python · pandas · scikit-learn · scipy · Excel modeling · Streamlit · Whisper/FFmpeg · RAG pipelines with local LLMs · and an unreasonable attention to detail.</p>
-
-  <h4>MISCELLANEOUS INTELLIGENCE</h4>
-  <p>Plays basketball. Listens to Frank Ocean, Pink Floyd, and Radiohead with full attention, never as background. Reads detective fiction and believes most good analysis is just detective work with cleaner data. Built this room himself, one strange decision at a time.</p>
-
-  <div class="contact">
-    REACH THE SUBJECT:
-    <a href="mailto:youremail@example.com">youremail@example.com</a> ·
-    <a href="https://github.com/shabad023" target="_blank" rel="noopener">github.com/shabad023</a> ·
-    <a href="resume.pdf" target="_blank" rel="noopener">resume</a>
-  </div>
+<!-- Top-right SOUND -->
+<div class="sound-nav">
+  <button id="navSound" class="nav-link">SOUND: OFF</button>
 </div>
 
+<!-- Top-center nav -->
 <div class="nav">
   <span class="wordmark">SHABADWASHERE</span>
   <a class="nav-link" href="index.html">THE STUDY</a>
   <a class="nav-link" href="cases.html">CASES</a>
   <a class="nav-link current" href="about.html">ABOUT</a>
 </div>
+
+<!-- Page content -->
+<div class="page">
+  <div class="dossier">
+    <div class="file-no">FILE No. 000 — PERSON OF INTEREST</div>
+    <h1>Shabadpreet Singh</h1>
+    <div class="alias">known to this site as: the one who was here</div>
+    <div class="stamp">ACTIVE</div>
+
+    <h4>BACKGROUND</h4>
+    <p>An architecture student at IIT Roorkee — fourth year of a five-year Bachelor of Architecture — who discovered, somewhere between studio deadlines and structural drawings, that the thing he actually loves about buildings is the thing he loves about everything: figuring out why they stand, why they fail, and what the people inside them need.</p>
+    <p>So he started investigating other structures. Markets. Pricing systems. Demand curves. Machine learning pipelines. The cases pinned in the next room are the record of that investigation.</p>
+
+    <h4>CURRENT OCCUPATION</h4>
+    <p>Placement manager at his college — the person responsible for connecting hundreds of students with the companies that hire them. Which means he reads job markets, talks to recruiters, and understands what companies actually want, from both sides of the table.</p>
+
+    <h4>SEEKING</h4>
+    <p>A six-month internship beginning January 2027, in product management, data analytics, or data science. He brings an architect's structural thinking, an analyst's patience with data, and a working portfolio of shipped investigations.</p>
+
+    <h4>INSTRUMENTS</h4>
+    <p>Python · pandas · scikit-learn · scipy · Excel modeling · Streamlit · Whisper/FFmpeg · RAG pipelines with local LLMs · and an unreasonable attention to detail.</p>
+
+    <h4>MISCELLANEOUS INTELLIGENCE</h4>
+    <p>Plays basketball. Listens to Frank Ocean, Pink Floyd, and Radiohead with full attention, never as background. Reads detective fiction and believes most good analysis is just detective work with cleaner data. Built this room himself, one strange decision at a time.</p>
+
+    <div class="contact">
+      REACH THE SUBJECT:
+      <a href="mailto:youremail@example.com">youremail@example.com</a> ·
+      <a href="https://github.com/shabad023" target="_blank" rel="noopener">github.com/shabad023</a> ·
+      <a href="resume.pdf" target="_blank" rel="noopener">resume</a>
+    </div>
+  </div>
+</div>
+
+<!-- Audio (shared) -->
+<audio id="bgm" src="soundtrack.mp3" loop preload="none"></audio>
+<audio id="fireSnd" src="fire.mp3" loop preload="none"></audio>
+<audio id="thunderSnd" src="thunder.mp3" loop preload="none"></audio>
+<audio id="lightningSnd" src="lightning.mp3" preload="auto"></audio>
+
+<script src="room.js"></script>
+<script src="sound.js"></script>
 
 </body>
 </html>
